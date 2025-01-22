@@ -3,10 +3,6 @@ import {
   Box,
   Container,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Paper,
   IconButton,
   Tooltip,
@@ -18,9 +14,13 @@ import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 import PersonIcon from '@mui/icons-material/Person';
 import ReplayIcon from '@mui/icons-material/Replay';
+import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ChatSidebar from './ChatSidebar';
 
 /**
- * ChatInterface component provides a ChatGPT-like interface with model and temperature selection
+ * ChatInterface component of clone ChatGPT
  * @component
  */
 const ChatInterface = () => {
@@ -149,22 +149,21 @@ const ChatInterface = () => {
               {/* User/Assistant Icon */}
               <Box 
                 sx={{ 
-                  width: 'auto',
-                  minWidth: 30,
-                  height: 30, 
+                  width: 30,  // Fixed width
+                  height: 30, // Fixed height
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: message.role === 'user' ? '#5c5c5c' : '#19c37d',
                   color: 'white',
-                  px: 1
+                  flexShrink: 0  // Prevent icon from shrinking
                 }}
               >
                 {message.role === 'user' ? (
                   <PersonIcon sx={{ fontSize: 20 }} />
                 ) : (
-                  <span style={{ fontSize: 14, fontWeight: 500 }}>Assistant</span>
+                  <SmartToyOutlinedIcon sx={{ fontSize: 20 }} />
                 )}
               </Box>
 
@@ -176,21 +175,26 @@ const ChatInterface = () => {
                       const match = /language-(\w+)/.exec(className || '');
                       return !inline && match ? (
                         <Box 
-                          component="pre" 
+                          component="div" 
                           sx={{ 
-                            bgcolor: '#f7f7f8',
-                            p: 2,
-                            borderRadius: 1,
+                            bgcolor: 'white',
+                            border: '1px solid #e5e5e5',
+                            borderRadius: 2,
                             overflow: 'auto',
-                            '& code': {
-                              fontFamily: 'monospace',
-                              fontSize: '0.875rem',
-                            }
+                            my: 2
                           }}
                         >
-                          <code {...props}>
+                          <SyntaxHighlighter
+                            language={match[1]}
+                            style={oneLight}
+                            customStyle={{
+                              margin: 0,
+                              padding: '16px',
+                              backgroundColor: 'white',
+                            }}
+                          >
                             {String(children).replace(/\n$/, '')}
-                          </code>
+                          </SyntaxHighlighter>
                         </Box>
                       ) : (
                         <code 
@@ -200,7 +204,8 @@ const ChatInterface = () => {
                             backgroundColor: '#f7f7f8',
                             padding: '0.2em 0.4em',
                             borderRadius: '3px',
-                            fontSize: '0.875em'
+                            fontSize: '0.875em',
+                            color: '#333'
                           }}
                         >
                           {children}
@@ -254,87 +259,82 @@ const ChatInterface = () => {
 
   return (
     <Box sx={{ 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      bgcolor: 'white'
+      display: 'flex',
+      height: '100vh',
     }}>
-      {/* Chat messages area */}
-      <Box 
-        sx={{ 
-          flex: 1, 
-          overflow: 'auto',
-          bgcolor: 'white'
+      {/* Sidebar */}
+      <ChatSidebar
+        messages={messages}
+        model={model}
+        setModel={setModel}
+        temperature={temperature}
+        setTemperature={setTemperature}
+        models={models}
+        temperatures={temperatures}
+        onChatSelect={(index) => {
+          // Scroll to the selected message
+          const element = document.getElementById(`message-${index}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }}
-      >
-        {messages.map((message, index) => (
-          <Message key={index} message={message} />
-        ))}
-      </Box>
+      />
 
-      {/* Controls area */}
-      <Container maxWidth="md" sx={{ p: 2 }}>
-        <Paper 
-          elevation={3} 
+      {/* Main Chat Area */}
+      <Box sx={{ 
+        flex: 1,
+        display: 'flex', 
+        flexDirection: 'column',
+        bgcolor: 'white'
+      }}>
+        {/* Chat messages area */}
+        <Box 
           sx={{ 
-            p: 2,
-            borderRadius: 2,
-            bgcolor: 'white',
-            boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+            flex: 1, 
+            overflow: 'auto',
+            bgcolor: 'white'
           }}
         >
-          <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-            {/* Model selection */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Model</InputLabel>
-              <Select
-                value={model}
-                label="Model"
-                onChange={(e) => setModel(e.target.value)}
-              >
-                {models.map((m) => (
-                  <MenuItem key={m} value={m}>{m}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Temperature selection */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Temperature</InputLabel>
-              <Select
-                value={temperature}
-                label="Temperature"
-                onChange={(e) => setTemperature(e.target.value)}
-              >
-                {temperatures.map((t) => (
-                  <MenuItem key={t} value={t}>{t}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          {/* Input form */}
-          <form onSubmit={handleSubmit}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                fullWidth
-                size="small"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message here..."
-                variant="outlined"
-              />
-              <IconButton 
-                type="submit" 
-                color="primary"
-                disabled={!input.trim()}
-              >
-                <SendIcon />
-              </IconButton>
+          {messages.map((message, index) => (
+            <Box id={`message-${index}`} key={index}>
+              <Message message={message} />
             </Box>
-          </form>
-        </Paper>
-      </Container>
+          ))}
+        </Box>
+
+        {/* Input area */}
+        <Container maxWidth="md" sx={{ p: 2 }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 2,
+              borderRadius: 2,
+              bgcolor: 'white',
+              boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+            }}
+          >
+            <form onSubmit={handleSubmit}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message here..."
+                  variant="outlined"
+                />
+                <IconButton 
+                  type="submit" 
+                  color="primary"
+                  disabled={!input.trim()}
+                >
+                  <SendIcon />
+                </IconButton>
+              </Box>
+            </form>
+          </Paper>
+        </Container>
+      </Box>
     </Box>
   );
 };
