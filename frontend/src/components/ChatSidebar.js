@@ -27,17 +27,11 @@ const ChatSidebar = ({
   models,
   temperatures
 }) => {
-  // Group messages by conversation
-  const chatHistory = messages.reduce((acc, msg, index) => {
-    if (msg.role === 'user') {
-      acc.push({
-        id: index,
-        question: msg.content.substring(0, 60) + '...',
-        messageIndex: index
-      });
-    }
-    return acc;
-  }, []);
+  // Group messages by user messages only
+  const chatHistory = messages.filter(msg => msg.role === 'user').map(msg => ({
+    id: msg.id,
+    question: msg.content.substring(0, 60) + '...',
+  }));
 
   return (
     <Box
@@ -52,8 +46,15 @@ const ChatSidebar = ({
       }}
     >
       {/* Settings Section */}
-      <Box sx={{ p: 2 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1, color: '#8e8ea0', fontWeight: 500 }}>
+      <Box sx={{ p: 2, mb: 3 }}>
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 2,
+            color: '#8e8ea0', 
+            fontWeight: 500 
+          }}
+        >
           Settings
         </Typography>
         <FormControl fullWidth size="small" sx={{ mb: 2 }}>
@@ -121,7 +122,7 @@ const ChatSidebar = ({
         {chatHistory.map((chat) => (
           <ListItem key={chat.id} disablePadding>
             <ListItemButton 
-              onClick={() => onChatSelect(chat.messageIndex)}
+              onClick={() => onChatSelect(chat.id)}
               sx={{
                 py: 2,
                 '&:hover': {

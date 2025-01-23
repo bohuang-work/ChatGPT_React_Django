@@ -12,23 +12,21 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CodeIcon from '@mui/icons-material/Code';
 import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
-import PersonIcon from '@mui/icons-material/Person';
-import ReplayIcon from '@mui/icons-material/Replay';
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ChatSidebar from './ChatSidebar';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import ReplayIcon from '@mui/icons-material/Replay';
 
 /**
  * ChatInterface component of clone ChatGPT
  * @component
  */
 const ChatInterface = () => {
-  // State for user input and chat history
-  const [input, setInput] = useState('');
+  // Each message now has a unique ID and loading state
   const [messages, setMessages] = useState([]);
-  
-  // State for model and temperature selection
+  const [input, setInput] = useState('');
   const [model, setModel] = useState('gpt-4o');
   const [temperature, setTemperature] = useState(0.7);
 
@@ -44,33 +42,44 @@ const ChatInterface = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Add user message to chat
-    const userMessage = { role: 'user', content: input };
-    setMessages([...messages, userMessage]);
+    const userMessage = { 
+      id: `user-${Date.now()}`,
+      role: 'user', 
+      content: input 
+    };
+
+    const assistantMessage = { 
+      id: `assistant-${Date.now()}`,
+      role: 'assistant', 
+      content: '',
+      isLoading: true
+    };
+
+    setMessages([...messages, userMessage, assistantMessage]);
     setInput('');
 
     try {
-      // Call backend API
       const response = await axios.post('http://localhost:8000/v1/chat/', {
         prompt: input,
-        model: model,
-        temperature: temperature
+        model,
+        temperature
       });
 
-      // Add assistant response to chat
-      const assistantMessage = { 
-        role: 'assistant', 
-        content: response.data.response 
-      };
-      setMessages(messages => [...messages, assistantMessage]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessage.id 
+          ? { ...msg, content: response.data.response, isLoading: false }
+          : msg
+      ));
     } catch (error) {
-      console.error('Error:', error);
-      // Add error message to chat
-      const errorMessage = {
-        role: 'assistant',
-        content: `Error: ${error.response?.data?.error || 'Failed to get response'}`
-      };
-      setMessages(messages => [...messages, errorMessage]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessage.id 
+          ? { 
+              ...msg, 
+              content: `Error: ${error.response?.data?.error || 'Failed to get response'}`,
+              isLoading: false 
+            }
+          : msg
+      ));
     }
   };
 
@@ -110,22 +119,37 @@ const ChatInterface = () => {
      * Regenerates the response for this message
      */
     const handleRegenerate = async () => {
+      // Find the corresponding user message
+      const messageIndex = messages.findIndex(msg => msg.id === message.id);
+      const userMessage = messages[messageIndex - 1];
+
+      // Set current message to loading state
+      setMessages(prev => prev.map(msg =>
+        msg.id === message.id ? { ...msg, isLoading: true } : msg
+      ));
+
       try {
         const response = await axios.post('http://localhost:8000/v1/chat/', {
-          prompt: messages[messages.indexOf(message) - 1].content, // Get the user's prompt
-          model: model,
-          temperature: temperature
+          prompt: userMessage.content,
+          model,
+          temperature
         });
 
-        // Replace this assistant message with new response
-        const newMessages = [...messages];
-        newMessages[messages.indexOf(message)] = {
-          role: 'assistant',
-          content: response.data.response
-        };
-        setMessages(newMessages);
+        setMessages(prev => prev.map(msg =>
+          msg.id === message.id 
+            ? { ...msg, content: response.data.response, isLoading: false }
+            : msg
+        ));
       } catch (error) {
-        console.error('Error:', error);
+        setMessages(prev => prev.map(msg =>
+          msg.id === message.id 
+            ? { 
+                ...msg, 
+                content: `Error: ${error.response?.data?.error || 'Failed to get response'}`,
+                isLoading: false 
+              }
+            : msg
+        ));
       }
     };
 
@@ -140,82 +164,99 @@ const ChatInterface = () => {
         <Box 
           sx={{ 
             p: 3,
-            bgcolor: message.role === 'user' ? '#f7f7f8' : 'white',
+            bgcolor: 'white',
             borderBottom: '1px solid rgba(0,0,0,0.1)',
           }}
         >
           <Container maxWidth="md">
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              gap: 2,
+              flexDirection: message.role === 'user' ? 'row-reverse' : 'row' // Align user messages to right
+            }}>
               {/* User/Assistant Icon */}
               <Box 
                 sx={{ 
-                  width: 30,  // Fixed width
-                  height: 30, // Fixed height
+                  width: 30,
+                  height: 30,
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: message.role === 'user' ? '#5c5c5c' : '#19c37d',
                   color: 'white',
-                  flexShrink: 0  // Prevent icon from shrinking
+                  flexShrink: 0
                 }}
               >
                 {message.role === 'user' ? (
-                  <PersonIcon sx={{ fontSize: 20 }} />
+                  <PersonOutlineIcon sx={{ fontSize: 20 }} />
                 ) : (
                   <SmartToyOutlinedIcon sx={{ fontSize: 20 }} />
                 )}
               </Box>
 
               {/* Message Content */}
-              <Box sx={{ flex: 1 }}>
-                <ReactMarkdown
-                  components={{
-                    code: ({ node, inline, className, children, ...props }) => {
-                      const match = /language-(\w+)/.exec(className || '');
-                      return !inline && match ? (
-                        <Box 
-                          component="div" 
-                          sx={{ 
-                            bgcolor: 'white',
-                            border: '1px solid #e5e5e5',
-                            borderRadius: 2,
-                            overflow: 'auto',
-                            my: 2
-                          }}
-                        >
-                          <SyntaxHighlighter
-                            language={match[1]}
-                            style={oneLight}
-                            customStyle={{
-                              margin: 0,
-                              padding: '16px',
-                              backgroundColor: 'white',
+              <Box 
+                sx={{ 
+                  flex: 1,
+                  bgcolor: message.role === 'user' ? '#f7f7f8' : 'white',
+                  p: message.role === 'user' ? 2 : 0,
+                  borderRadius: message.role === 'user' ? 2 : 0,
+                }}
+              >
+                {message.isLoading ? (
+                  <Box sx={{ p: 2 }}>
+                    <Box component="span" sx={{
+                      color: '#666',
+                      fontSize: '24px',
+                      lineHeight: 1,
+                      animation: 'blink 1s infinite',
+                      '@keyframes blink': {
+                        '0%, 100%': { opacity: 0.2 },
+                        '50%': { opacity: 0.8 }
+                      }
+                    }}>
+                      ...
+                    </Box>
+                  </Box>
+                ) : (
+                  <ReactMarkdown
+                    components={{
+                      code: ({ node, inline, className, children, ...props }) => {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <Box 
+                            component="div" 
+                            sx={{ 
+                              bgcolor: 'white',
+                              border: '1px solid #e5e5e5',
+                              borderRadius: 2,
+                              overflow: 'auto',
+                              my: 2
                             }}
                           >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        </Box>
-                      ) : (
-                        <code 
-                          className={className} 
-                          {...props}
-                          style={{ 
-                            backgroundColor: '#f7f7f8',
-                            padding: '0.2em 0.4em',
-                            borderRadius: '3px',
-                            fontSize: '0.875em',
-                            color: '#333'
-                          }}
-                        >
-                          {children}
-                        </code>
+                            <SyntaxHighlighter
+                              language={match[1]}
+                              style={oneLight}
+                              customStyle={{
+                                margin: 0,
+                                padding: '16px',
+                                backgroundColor: 'white',
+                              }}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          </Box>
+                        ) : (
+                        <code {...props}>{children}</code>
                       );
                     }
                   }}
-                >
-                  {message.content}
-                </ReactMarkdown>
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                )}
               </Box>
 
               {/* Copy and regenerate buttons - only show for assistant messages */}
@@ -244,6 +285,7 @@ const ChatInterface = () => {
                       size="small"
                       onClick={handleRegenerate}
                       sx={{ color: '#6e6e80' }}
+                      disabled={message.isLoading}
                     >
                       <ReplayIcon fontSize="small" />
                     </IconButton>
@@ -261,6 +303,7 @@ const ChatInterface = () => {
     <Box sx={{ 
       display: 'flex',
       height: '100vh',
+      bgcolor: 'white'
     }}>
       {/* Sidebar */}
       <ChatSidebar
@@ -271,9 +314,8 @@ const ChatInterface = () => {
         setTemperature={setTemperature}
         models={models}
         temperatures={temperatures}
-        onChatSelect={(index) => {
-          // Scroll to the selected message
-          const element = document.getElementById(`message-${index}`);
+        onChatSelect={(messageId) => {
+          const element = document.getElementById(messageId);
           if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
           }
@@ -295,8 +337,8 @@ const ChatInterface = () => {
             bgcolor: 'white'
           }}
         >
-          {messages.map((message, index) => (
-            <Box id={`message-${index}`} key={index}>
+          {messages.map((message) => (
+            <Box id={message.id} key={message.id}>
               <Message message={message} />
             </Box>
           ))}
