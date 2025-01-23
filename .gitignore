@@ -44,4 +44,5 @@ frontend/yarn-error.log*
 
 # IDE
 .vscode/
-.idea/ 
+.idea/
+.env

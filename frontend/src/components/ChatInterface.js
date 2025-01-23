@@ -18,6 +18,8 @@ import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import CodeIcon from '@mui/icons-material/Code';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+
 /**
  * ChatInterface component of clone ChatGPT
  * @component
@@ -59,8 +61,8 @@ const ChatInterface = () => {
 
     try {
       const endpoint = input.startsWith("#weather") 
-        ? 'http://localhost:8000/v1/chat_with_functions/'
-        : 'http://localhost:8000/v1/chat/';
+        ? `${BACKEND_URL}/v1/chat_with_functions/`
+        : `${BACKEND_URL}/v1/chat/`;
 
       const response = await axios.post(endpoint, {
         prompt: input,
@@ -117,11 +119,19 @@ const ChatInterface = () => {
   };
 
   const extractCodeBlocks = (content) => {
-    const codeBlockRegex = /```[\s\S]*?```/g;
-    const matches = content.match(codeBlockRegex) || [];
-    return matches
-      .map(block => block.replace(/```\w*\n?|\n?```/g, ''))
-      .join('\n\n');
+    // Only match code blocks that have a language specified (not plaintext)
+    const codeBlockRegex = /```(python|javascript|typescript|java|cpp|cs|ruby|go|rust|php|sql|html|css|bash|shell)?\s*([\s\S]*?)```/gi;
+    const matches = [];
+    let match;
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      // Only include if it has a language tag or it's not plaintext
+      if (match[1] && match[1].toLowerCase() !== 'plaintext') {
+        matches.push(match[2].trim());
+      }
+    }
+
+    return matches.join('\n\n');
   };
 
   /**
@@ -156,8 +166,8 @@ const ChatInterface = () => {
 
       try {
         const endpoint = userMessage.content.startsWith("#weather")
-          ? 'http://localhost:8000/v1/chat_with_functions/'
-          : 'http://localhost:8000/v1/chat/';
+          ? `${BACKEND_URL}/v1/chat_with_functions/`
+          : `${BACKEND_URL}/v1/chat/`;
 
         const response = await axios.post(endpoint, {
           prompt: userMessage.content,

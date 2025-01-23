@@ -6,7 +6,7 @@
     "vscode": {
       "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
-        "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
         "python.analysis.typeCheckingMode": "basic"
       },
       "extensions": [
@@ -23,6 +23,7 @@
     8000,  // Django port
     3000   // React port
   ],
+  "postCreateCommand": "cd frontend && yarn install && cd ../backend && poetry install",
   "remoteUser": "vscode",
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
