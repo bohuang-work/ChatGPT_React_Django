@@ -17,11 +17,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
+
+# Add redirect function
+def redirect_to_chat(request):
+    return redirect('v1/chat/')
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-]
-
-urlpatterns += [
+    # Add root URL redirect
+    path("", redirect_to_chat, name="redirect-to-chat"),
     path("v1/", include('chatGPTAPP.urls')),
 ]

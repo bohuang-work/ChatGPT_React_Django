@@ -9,15 +9,14 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CodeIcon from '@mui/icons-material/Code';
+import PublicIcon from '@mui/icons-material/Public';
 import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ChatSidebar from './ChatSidebar';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
+import CodeIcon from '@mui/icons-material/Code';
 
 /**
  * ChatInterface component of clone ChatGPT
@@ -59,15 +58,25 @@ const ChatInterface = () => {
     setInput('');
 
     try {
-      const response = await axios.post('http://localhost:8000/v1/chat/', {
+      const endpoint = input.startsWith("#weather") 
+        ? 'http://localhost:8000/v1/chat_with_functions/'
+        : 'http://localhost:8000/v1/chat/';
+
+      const response = await axios.post(endpoint, {
         prompt: input,
         model,
         temperature
       });
 
+      // Format weather response if needed
+      let formattedResponse = response.data.response;
+      if (input.startsWith("#weather") && formattedResponse.includes("|")) {
+        formattedResponse = formatWeatherTable(formattedResponse);
+      }
+
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMessage.id 
-          ? { ...msg, content: response.data.response, isLoading: false }
+          ? { ...msg, content: formattedResponse, isLoading: false }
           : msg
       ));
     } catch (error) {
@@ -83,6 +92,38 @@ const ChatInterface = () => {
     }
   };
 
+  const formatWeatherTable = (response) => {
+    // Extract table data
+    const lines = response.split('\n');
+    const tableStart = lines.findIndex(line => line.includes('| Date'));
+    const tableEnd = lines.findIndex((line, i) => i > tableStart && !line.includes('|'));
+    
+    if (tableStart === -1) return response;
+
+    const tableLines = lines.slice(tableStart, tableEnd);
+    const formattedTable = tableLines.map(line => 
+      line.replace(/\|/g, '  ')  // Replace pipes with spaces
+          .trim()
+    ).join('\n');
+
+    // Reconstruct response with formatted table
+    return [
+      ...lines.slice(0, tableStart),
+      '```',
+      formattedTable,
+      '```',
+      ...lines.slice(tableEnd)
+    ].join('\n');
+  };
+
+  const extractCodeBlocks = (content) => {
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    const matches = content.match(codeBlockRegex) || [];
+    return matches
+      .map(block => block.replace(/```\w*\n?|\n?```/g, ''))
+      .join('\n\n');
+  };
+
   /**
    * Message component that displays a single message with copy buttons
    */
@@ -90,29 +131,14 @@ const ChatInterface = () => {
     /**
      * Copies text to clipboard
      * @param {string} text - Text to copy
-     * @param {string} type - Type of content being copied (for tooltip)
      */
-    const handleCopy = async (text, type = 'content') => {
+    const handleCopy = async (text) => {
       try {
         await navigator.clipboard.writeText(text);
-        // You could add a snackbar/toast notification here
-        console.log(`${type} copied to clipboard`);
+        console.log('Content copied');
       } catch (err) {
         console.error('Failed to copy:', err);
       }
-    };
-
-    /**
-     * Extracts code blocks from markdown content
-     * @param {string} content - Markdown content
-     * @returns {string} - Concatenated code blocks
-     */
-    const extractCodeBlocks = (content) => {
-      const codeBlockRegex = /```[\s\S]*?```/g;
-      const matches = content.match(codeBlockRegex) || [];
-      return matches
-        .map(block => block.replace(/```\w*\n?|\n?```/g, ''))
-        .join('\n\n');
     };
 
     /**
@@ -129,15 +155,24 @@ const ChatInterface = () => {
       ));
 
       try {
-        const response = await axios.post('http://localhost:8000/v1/chat/', {
+        const endpoint = userMessage.content.startsWith("#weather")
+          ? 'http://localhost:8000/v1/chat_with_functions/'
+          : 'http://localhost:8000/v1/chat/';
+
+        const response = await axios.post(endpoint, {
           prompt: userMessage.content,
           model,
           temperature
         });
 
+        let formattedResponse = response.data.response;
+        if (userMessage.content.startsWith("#weather") && formattedResponse.includes("|")) {
+          formattedResponse = formatWeatherTable(formattedResponse);
+        }
+
         setMessages(prev => prev.map(msg =>
           msg.id === message.id 
-            ? { ...msg, content: response.data.response, isLoading: false }
+            ? { ...msg, content: formattedResponse, isLoading: false }
             : msg
         ));
       } catch (error) {
@@ -221,51 +256,17 @@ const ChatInterface = () => {
                     </Box>
                   </Box>
                 ) : (
-                  <ReactMarkdown
-                    components={{
-                      code: ({ node, inline, className, children, ...props }) => {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <Box 
-                            component="div" 
-                            sx={{ 
-                              bgcolor: 'white',
-                              border: '1px solid #e5e5e5',
-                              borderRadius: 2,
-                              overflow: 'auto',
-                              my: 2
-                            }}
-                          >
-                            <SyntaxHighlighter
-                              language={match[1]}
-                              style={oneLight}
-                              customStyle={{
-                                margin: 0,
-                                padding: '16px',
-                                backgroundColor: 'white',
-                              }}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          </Box>
-                        ) : (
-                        <code {...props}>{children}</code>
-                      );
-                    }
-                  }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
                 )}
               </Box>
 
               {/* Copy and regenerate buttons - only show for assistant messages */}
               {message.role === 'assistant' && (
                 <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                  <Tooltip title="Copy full message">
+                  <Tooltip title="Copy message">
                     <IconButton 
                       size="small"
-                      onClick={() => handleCopy(message.content, 'Full message')}
+                      onClick={() => handleCopy(message.content)}
                       sx={{ color: '#6e6e80' }}
                     >
                       <ContentCopyIcon fontSize="small" />
@@ -274,7 +275,7 @@ const ChatInterface = () => {
                   <Tooltip title="Copy code blocks">
                     <IconButton 
                       size="small"
-                      onClick={() => handleCopy(extractCodeBlocks(message.content), 'Code')}
+                      onClick={() => handleCopy(extractCodeBlocks(message.content))}
                       sx={{ color: '#6e6e80' }}
                     >
                       <CodeIcon fontSize="small" />
@@ -374,6 +375,27 @@ const ChatInterface = () => {
                 </IconButton>
               </Box>
             </form>
+            
+            {/* Add Weather Button */}
+            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+              <Tooltip title="Ask about weather">
+                <IconButton
+                  size="small"
+                  onClick={() => setInput("#weather ")}
+                  sx={{ 
+                    color: '#6e6e80',
+                    border: '1px solid #e5e5e5',
+                    borderRadius: 1,
+                    p: 0.5,
+                    '&:hover': {
+                      bgcolor: '#f7f7f8'
+                    }
+                  }}
+                >
+                  <PublicIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Paper>
         </Container>
       </Box>

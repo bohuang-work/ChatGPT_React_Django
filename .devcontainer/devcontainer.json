@@ -23,7 +23,6 @@
     8000,  // Django port
     3000   // React port
   ],
-  "postCreateCommand": "cd backend && poetry install && cd ../frontend && yarn install",
   "remoteUser": "vscode",
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
