@@ -24,12 +24,12 @@ USER vscode
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Add Poetry to PATH and configure virtualenv in project
+# Add Poetry to PATH and configure poetry to create virtualenv in project
 ENV PATH="/home/vscode/.local/bin:$PATH"
 RUN poetry config virtualenvs.in-project true
 
-# Use bash shell for better scripting support
+# Use bash shell
 SHELL ["/bin/bash", "-c"]
 
-# Set the workspace directory
+# Set working directory
 WORKDIR /workspace

@@ -6,7 +6,7 @@
     "vscode": {
       "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
-        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
         "python.analysis.typeCheckingMode": "basic"
       },
       "extensions": [
