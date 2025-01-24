@@ -16,8 +16,8 @@ class OpenAIService:
     max_tokens: int
     headers: Dict[str, str]
     api_url: str
-    model: str
-    temperature: float
+    model: str | None
+    temperature: float | None
 
     def __init__(self, model: str, temperature: float) -> None:
         """Initialize Azure OpenAI API configuration."""
@@ -44,7 +44,7 @@ class OpenAIService:
             f"{self.endpoint}openai/deployments/{self.model}/chat/completions?api-version={self.api_version}"
         )
 
-    def validate_parameters(self, model: str, temperature: float) -> None:
+    def validate_parameters(self, model: str | None, temperature: float | None) -> None:
         """
         Validate input parameters for the API call.
 

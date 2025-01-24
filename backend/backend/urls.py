@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 
-# Add redirect function
+# Add redirect function to jump to chatGPTAPP
 def redirect_to_chat(request):
     return redirect('v1/chat/')
 

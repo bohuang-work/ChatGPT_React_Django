@@ -9,6 +9,6 @@ python manage.py makemigrations
 echo "Running migrations..."
 python manage.py migrate
 
-# Start Django server
+# Start Django development server
 echo "Starting Django server..."
 python manage.py runserver 0.0.0.0:8000 

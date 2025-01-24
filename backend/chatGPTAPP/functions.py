@@ -11,11 +11,11 @@ function_descriptions = [
                     "description": "Timezone name, e.g. Europe/Berlin",
                 },
                 "latitude": {
-                    "type": "number",  # Changed from float to number
+                    "type": "number",
                     "description": "The latitude of the city. e.g. 48.137",
                 },
                 "longitude": {
-                    "type": "number",  # Changed from float to number
+                    "type": "number",
                     "description": "The longitude of the city. e.g. 11.576",
                 },
             },
