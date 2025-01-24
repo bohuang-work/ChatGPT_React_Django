@@ -29,6 +29,9 @@ AZURE_OPENAI_API_KEY = os.getenv('AZURE_OPENAI_API_KEY')
 if not AZURE_OPENAI_API_KEY:
     raise ValueError("AZURE_OPENAI_API_KEY environment variable is not set")
 
+# For demo purpose, allow all hosts
+ALLOWED_HOSTS = ['*']  # Allow all hosts
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -37,13 +40,6 @@ SECRET_KEY = "django-insecure-!_i3_23sdd94@8df#(b0*4e8yjlo#ss&g3^h8r&1k$hq0j3h7h
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = [
-    '0.0.0.0',
-    'localhost',
-    '127.0.0.1'
-]
-
 
 # Application definition
 
@@ -81,11 +77,9 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # Handles CORS headers
 ]
 
-# Allow requests only from frontend origin
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
-    "http://127.0.0.1:3000",  # Alternative localhost URL
-]
+# Allow all origins for development/demo
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 # REST Framework settings
 REST_FRAMEWORK = {

@@ -13,8 +13,6 @@ services:
     image: bohuang910407/chatgpt_react_django-frontend:latest
     ports:
       - "3000:3000"
-    environment:
-      - BACKEND_URL=http://backend:8000
     depends_on:
       - backend
     networks:

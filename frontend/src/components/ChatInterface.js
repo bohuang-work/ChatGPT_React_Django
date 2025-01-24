@@ -18,7 +18,7 @@ import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import CodeIcon from '@mui/icons-material/Code';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_DJANGO_BACKEND_URL || 'http://localhost:8000';
 
 /**
  * ChatInterface component of clone ChatGPT
@@ -376,13 +376,17 @@ const ChatInterface = () => {
                   placeholder="Type your message here..."
                   variant="outlined"
                 />
-                <IconButton 
-                  type="submit" 
-                  color="primary"
-                  disabled={!input.trim()}
-                >
-                  <SendIcon />
-                </IconButton>
+                <Tooltip title={!input.trim() ? "Please enter a message" : "Send message"}>
+                  <span>
+                    <IconButton 
+                      type="submit" 
+                      color="primary"
+                      disabled={!input.trim()}
+                    >
+                      <SendIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </Box>
             </form>
             
