@@ -23,11 +23,14 @@ COPY pyproject.toml poetry.lock ./
 # Install dependencies
 RUN poetry install --no-interaction --no-ansi
 
-# Copy project files
+# Copy project files and .env
 COPY . .
+
+# Load environment variables from .env file
+ENV $(cat .env | xargs)
 
 # Expose port
 EXPOSE 8000
 
 # Run the application
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"] 
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
