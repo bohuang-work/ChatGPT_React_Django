@@ -1,0 +1,25 @@
+services:
+  backend:
+    image: bohuang910407/chatgpt_react_django-backend:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+    networks:
+      - app-network
+
+  frontend:
+    image: bohuang910407/chatgpt_react_django-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge 
