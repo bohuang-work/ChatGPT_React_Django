@@ -3,7 +3,7 @@ Views for the ChatGPT clone API.
 """
 
 import json
-from typing import Optional, Any
+from typing import Optional
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -14,7 +14,47 @@ from chatGPTAPP.functions import function_descriptions
 from chatGPTAPP.services import OpenAIService, WeatherService
 
 
+### Constants ###
+VALID_MODELS = ["gpt-4o", "gpt-4o-mini"]
+VALID_TEMPERATURES = [0.2, 0.7, 0.9]
+MAX_TOKENS = 2000 # Maximum number of tokens to generate
+
+
 ### Views ###
+def validate_request(
+    data: dict,
+) -> tuple[Optional[str], Optional[str], Optional[float]]:
+    """Validate request data and return validated values.
+    Make sure that the request data is not empty and that the model and temperature are valid.
+
+    Args:
+        data: The request data containing prompt, model, and temperature
+
+    Returns:
+        tuple[Optional[str], Optional[str], Optional[float]]: Validated prompt, model, and temperature
+    """
+    prompt = data.get("prompt")
+    model = data.get("model")
+    temperature = data.get("temperature")
+
+    if not all([prompt, model, temperature]):
+        raise ValueError("Missing required parameters")
+
+    if model not in VALID_MODELS:
+        raise ValueError(f"Invalid model. Must be one of {VALID_MODELS}")
+
+    try:
+        temp = float(temperature) # type: ignore
+        if temp not in VALID_TEMPERATURES:
+            raise ValueError(
+                f"Invalid temperature. Must be one of {VALID_TEMPERATURES}"
+            )
+    except (TypeError, ValueError):
+        raise ValueError("Temperature must be a valid number")
+
+    return prompt, model, temp
+
+
 @api_view(["GET", "POST"])
 def generate_chat_response(request: Request) -> Response:
     """
@@ -52,35 +92,21 @@ def generate_chat_response(request: Request) -> Response:
         )
 
     try:
-        # Get data from POST request
-        prompt: Optional[str] = request.data.get("prompt")  # type: ignore
-        model: Optional[str] = request.data.get("model")  # type: ignore
-        temperature: Optional[float] = float(request.data.get("temperature"))  # type: ignore
+        prompt, model, temperature = validate_request(request.data) # type: ignore
 
-        # Validate required parameters
-        if not all([prompt, model, temperature]):
-            return Response(
-                {"error": "Missing required parameters"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        data = {
+            "messages": [{"role": "user", "content": prompt}],
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": MAX_TOKENS,
+        }
 
-        try:
-            # Initialize service and make API call
-            service: OpenAIService = OpenAIService(model=model, temperature=temperature)  # type: ignore
-            response_text: str = service.call_chat_gpt(prompt)  # type: ignore
-            return Response({"response": response_text})
-
-        except Exception as api_error:
-            return Response(
-                {"error": f"API call failed: {str(api_error)}"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+        service = OpenAIService()
+        response_text = service.call_chat_gpt(model, data) # type: ignore
+        return Response({"response": response_text})
 
     except ValueError as e:
-        return Response(
-            {"error": f"Invalid parameter format: {str(e)}"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response(
             {"error": f"An unexpected error occurred: {str(e)}"},
@@ -125,79 +151,68 @@ def generate_chat_response_with_functions(request: Request) -> Response:
         )
 
     try:
-        # Get data from POST request
-        prompt: Optional[str] = request.data.get("prompt")  # type: ignore
-        model: Optional[str] = request.data.get("model")  # type: ignore
-        temperature: Optional[float] = request.data.get("temperature")  # type: ignore
+        prompt, model, temperature = validate_request(request.data) # type: ignore
 
-        # Validate required parameters
-        if not all([prompt, model, temperature]):
+        data = {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant with function callings.",
+                },
+                {
+                    "role": "user",
+                    "content": f"{prompt}\n\nPlease use functions when needed.",
+                },
+            ],
+            "functions": function_descriptions,
+            "function_call": "auto",
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": 2000,
+        }
+
+        service = OpenAIService()
+        function_response = service.call_chat_gpt(model, data) # type: ignore
+
+        if "function_call" not in function_response:
             return Response(
-                {"error": "Missing required parameters"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "response": "I can't find the information of the city you're looking for."
+                }
             )
 
-        try:
-            # Initialize OpenAI service for function calling
-            openai_service: OpenAIService = OpenAIService(
-                model=model, temperature=temperature  # type: ignore
-            )
-            # First call with function descriptions to extract weather info
-            function_response: dict[str, str | dict[str, Any]] = openai_service.call_chat_gpt_with_functions(  # type: ignore
-                prompt=prompt if prompt is not None else "",
-                function_descriptions=function_descriptions,
-            )
+        weather_args = json.loads(function_response["function_call"]["arguments"]) # type: ignore
+        required_params = ["latitude", "longitude"]
 
-            # Parse function response to get weather parameters
-            if "function_call" not in function_response:
-                return Response(
-                    {
-                        "response": "I can't find the information of the city you're looking for. Please provide me with the name of the city."
-                    }
-                )
-
-            weather_args: dict = json.loads(
-                function_response["function_call"]["arguments"]  # type: ignore
-            )
-
-            # Check if all required parameters are present
-            required_params: list[str] = ["latitude", "longitude"]
-            if not all(weather_args.get(param) for param in required_params):
-                return Response(
-                    {
-                        "response": "I can't find the complete location information. Please provide a valid city name."
-                    }
-                )
-
-            # Initialize weather service with extracted parameters
-            weather_service: WeatherService = WeatherService(
-                latitude=float(weather_args["latitude"]),
-                longitude=float(weather_args["longitude"]),
-                timezone=weather_args.get("timezone", "Europe/Berlin"),
-            )
-
-            # Get actual weather data
-            weather_data: dict = weather_service.get_weather_forecast()
-
-            # Generate final response with weather data
-            final_prompt: str = (
-                f"{prompt}\n\nHere's the weather data: {json.dumps(weather_data)}"
-            )
-            final_response: str = openai_service.call_chat_gpt(final_prompt)
-
-            return Response({"response": final_response})
-
-        except json.JSONDecodeError:
+        if not all(weather_args.get(param) for param in required_params):
             return Response(
-                {"error": "Failed to parse API response"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        except Exception as api_error:
-            return Response(
-                {"error": f"API call failed: {str(api_error)}"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                {"response": "I can't find the complete location information."}
             )
 
+        weather_service = WeatherService(
+            latitude=float(weather_args["latitude"]),
+            longitude=float(weather_args["longitude"]),
+            timezone=weather_args.get("timezone", "Europe/Berlin"),
+        )
+
+        weather_data = weather_service.get_weather_forecast()
+        final_data = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"{prompt}\n\nHere's the weather data: {json.dumps(weather_data)}",
+                }
+            ],
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": MAX_TOKENS,
+        }
+
+        final_response = service.call_chat_gpt(model, final_data) # type: ignore
+        return Response({"response": final_response})
+
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response(
             {"error": f"An unexpected error occurred: {str(e)}"},
