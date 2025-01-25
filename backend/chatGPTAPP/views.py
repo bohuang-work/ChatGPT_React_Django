@@ -157,7 +157,7 @@ def generate_chat_response_with_functions(request: Request) -> Response:
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant with function callings.",
+                    "content": "Please use functions, and help me try to find timezone, latitude, longitude, and city name.",
                 },
                 {
                     "role": "user",
@@ -182,7 +182,7 @@ def generate_chat_response_with_functions(request: Request) -> Response:
             )
 
         weather_args = json.loads(function_response["function_call"]["arguments"]) # type: ignore
-        required_params = ["latitude", "longitude"]
+        required_params = ["latitude", "longitude", "city_name"]
 
         if not all(weather_args.get(param) for param in required_params):
             return Response(
@@ -190,6 +190,7 @@ def generate_chat_response_with_functions(request: Request) -> Response:
             )
 
         weather_service = WeatherService(
+            city_name=weather_args["city_name"],
             latitude=float(weather_args["latitude"]),
             longitude=float(weather_args["longitude"]),
             timezone=weather_args.get("timezone", "Europe/Berlin"),

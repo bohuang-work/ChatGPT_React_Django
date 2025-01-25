@@ -1,14 +1,11 @@
-import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import ChatInterface from './components/ChatInterface';
+import ChatInterface from './components/chat/ChatInterface';
 
 /**
- * Main App component that provides theming and layout
- * @component
+ * Root application component
  */
 const App = () => {
-  // Create a theme instance
   const theme = createTheme({
     palette: {
       mode: 'light',

@@ -37,7 +37,7 @@ class OpenAIService:
                 url, headers=self.headers, json=data
             )
             response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"]
+            return response.json()["choices"][0]["message"]
         except requests.exceptions.RequestException as e:
             raise Exception(f"API request failed: {str(e)}")
         except KeyError as e:
@@ -47,58 +47,49 @@ class OpenAIService:
 class WeatherService:
     """Service for retrieving weather forecast data."""
 
-    def __init__(
-        self, latitude: float, longitude: float, timezone: str, days: int = 7
-    ) -> None:
-        """
-        Initialize the weather service.
-
-        Args:
-            latitude: The latitude coordinate
-            longitude: The longitude coordinate
-            timezone: The timezone name (e.g. 'Europe/Berlin')
-            days: Number of forecast days (default 7)
-        """
+    def __init__(self,  latitude, longitude, city_name, timezone="Europe/Berlin"):
+        self.city_name = city_name
+        self.timezone = timezone
         self.latitude = latitude
         self.longitude = longitude
-        self.timezone = timezone
-        self.days = days
-        self.base_url = "https://api.open-meteo.com/v1/forecast"
 
-    def get_weather_forecast(self) -> Dict[str, Any]:
-        """
-        Get weather forecast for the specified location.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing daily weather data including:
-                - time: List of dates
-                - temperature_max: List of daily maximum temperatures
-                - temperature_min: List of daily minimum temperatures
-                - precipitation: List of daily precipitation amounts
-
-        Raises:
-            Exception: If the weather API request fails or response format is unexpected
-        """
+    def get_weather_forecast(self):
         try:
-            # Construct API URL with parameters
-            url = f"{self.base_url}?latitude={self.latitude}&longitude={self.longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone={self.timezone}&forecast_days={self.days}"
+            url = (
+                f"https://api.open-meteo.com/v1/forecast"
+                f"?latitude={self.latitude}"
+                f"&longitude={self.longitude}"
+                f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
+                f"&timezone={self.timezone}"
+            )
 
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
 
+            daily = data["daily"]
+            dates = daily["time"]
+            max_temps = daily["temperature_2m_max"]
+            min_temps = daily["temperature_2m_min"]
+            precip = daily["precipitation_sum"]
+
+            # Format as markdown table
+            response = [f"## Weather Forecast for {self.city_name} (Next 7 Days)\n"]
+            response.append("| Date | Max Temperature (°C) | Min Temperature (°C) | Precipitation (mm) |")
+            response.append("|------|-------------------|-------------------|-----------------|")
+
+            for i in range(len(dates)):
+                response.append(
+                    f"| {dates[i]} | {max_temps[i]:<17} | {min_temps[i]:<17} | {precip[i]:<15} |"
+                )
+
+            response.append(f"\nData source: Open-Meteo Weather API (https://open-meteo.com/). Forecast data is subject to updates and changes.")
+
             return {
-                "daily": {
-                    "time": data["daily"]["time"],
-                    "temperature_max": data["daily"]["temperature_2m_max"],
-                    "temperature_min": data["daily"]["temperature_2m_min"],
-                    "precipitation": data["daily"]["precipitation_sum"],
-                }
+                "content": "\n".join(response),
+                "refusal": None,
+                "role": "assistant"
             }
 
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Weather API request failed: {str(e)}")
-        except KeyError as e:
-            raise Exception(f"Unexpected weather API response format: {str(e)}")
         except Exception as e:
             raise Exception(f"Error getting weather forecast: {str(e)}")

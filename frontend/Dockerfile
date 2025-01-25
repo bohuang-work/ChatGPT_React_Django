@@ -1,16 +1,24 @@
-FROM node:20-slim
+# Build and serve stage
+FROM node:23-slim
 
+# Set working directory
 WORKDIR /app
 
-# Install dependencies
+# Copy package files
 COPY package.json yarn.lock ./
-RUN yarn install
+
+# Install dependencies and serve
+RUN yarn install --frozen-lockfile && \
+    yarn global add serve
 
 # Copy source code
 COPY . .
 
+# Build the app
+RUN yarn build
+
 # Expose port
 EXPOSE 3000
 
-# Start development server
-CMD ["yarn", "start"] 
+# Start serve
+CMD ["serve", "-s", "dist", "-l", "3000"] 

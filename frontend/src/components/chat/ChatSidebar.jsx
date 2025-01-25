@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   List,
@@ -12,10 +12,10 @@ import {
   MenuItem,
   Typography,
 } from '@mui/material';
+import { CHAT_CONFIG } from '../../constants/config';
 
 /**
- * Sidebar component showing chat history and settings
- * @component
+ * Sidebar component for chat settings and history
  */
 const ChatSidebar = ({ 
   messages, 
@@ -24,14 +24,14 @@ const ChatSidebar = ({
   temperature, 
   setTemperature,
   onChatSelect,
-  models,
-  temperatures
 }) => {
-  // Group messages by user messages only
-  const chatHistory = messages.filter(msg => msg.role === 'user').map(msg => ({
-    id: msg.id,
-    question: msg.content.substring(0, 60) + '...',
-  }));
+  // Filter user messages for chat history
+  const chatHistory = messages
+    .filter(msg => msg.role === 'user')
+    .map(msg => ({
+      id: msg.id,
+      question: msg.content.substring(0, 60) + '...',
+    }));
 
   return (
     <Box
@@ -47,16 +47,10 @@ const ChatSidebar = ({
     >
       {/* Settings Section */}
       <Box sx={{ p: 2, mb: 3 }}>
-        <Typography 
-          variant="subtitle2" 
-          sx={{ 
-            mb: 2,
-            color: '#8e8ea0', 
-            fontWeight: 500 
-          }}
-        >
+        <Typography variant="subtitle2" sx={{ mb: 2, color: '#8e8ea0', fontWeight: 500 }}>
           Settings
         </Typography>
+        
         <FormControl fullWidth size="small" sx={{ mb: 2 }}>
           <InputLabel sx={{ color: 'white' }}>Model</InputLabel>
           <Select
@@ -65,18 +59,12 @@ const ChatSidebar = ({
             onChange={(e) => setModel(e.target.value)}
             sx={{
               color: 'white',
-              '.MuiOutlinedInput-notchedOutline': {
-                borderColor: '#4d4d4f'
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#6e6e80'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#8e8ea0'
-              }
+              '.MuiOutlinedInput-notchedOutline': { borderColor: '#4d4d4f' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#6e6e80' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8e8ea0' }
             }}
           >
-            {models.map((m) => (
+            {CHAT_CONFIG.MODELS.map((m) => (
               <MenuItem key={m} value={m}>{m}</MenuItem>
             ))}
           </Select>
@@ -90,18 +78,12 @@ const ChatSidebar = ({
             onChange={(e) => setTemperature(e.target.value)}
             sx={{
               color: 'white',
-              '.MuiOutlinedInput-notchedOutline': {
-                borderColor: '#4d4d4f'
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#6e6e80'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#8e8ea0'
-              }
+              '.MuiOutlinedInput-notchedOutline': { borderColor: '#4d4d4f' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#6e6e80' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8e8ea0' }
             }}
           >
-            {temperatures.map((t) => (
+            {CHAT_CONFIG.TEMPERATURES.map((t) => (
               <MenuItem key={t} value={t}>{t}</MenuItem>
             ))}
           </Select>
@@ -117,7 +99,6 @@ const ChatSidebar = ({
         </Typography>
       </Box>
 
-      {/* Chat History List */}
       <List sx={{ flex: 1, overflow: 'auto' }}>
         {chatHistory.map((chat) => (
           <ListItem key={chat.id} disablePadding>
@@ -125,9 +106,7 @@ const ChatSidebar = ({
               onClick={() => onChatSelect(chat.id)}
               sx={{
                 py: 2,
-                '&:hover': {
-                  bgcolor: '#2A2B32'
-                }
+                '&:hover': { bgcolor: '#2A2B32' }
               }}
             >
               <ListItemText 
@@ -148,6 +127,21 @@ const ChatSidebar = ({
       </List>
     </Box>
   );
+};
+
+ChatSidebar.propTypes = {
+  messages: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      role: PropTypes.string.isRequired,
+      content: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  model: PropTypes.string.isRequired,
+  setModel: PropTypes.func.isRequired,
+  temperature: PropTypes.number.isRequired,
+  setTemperature: PropTypes.func.isRequired,
+  onChatSelect: PropTypes.func.isRequired,
 };
 
 export default ChatSidebar; 

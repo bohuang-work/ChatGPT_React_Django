@@ -21,6 +21,7 @@
   },
   "forwardPorts": [
     8000,  // Django port
+    5173,  // Vite dev server port
     3000   // React port
   ],
   "postCreateCommand": "cd frontend && yarn install && cd ../backend && poetry install",

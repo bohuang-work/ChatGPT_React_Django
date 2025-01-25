@@ -18,8 +18,12 @@ function_descriptions = [
                     "type": "number",
                     "description": "The longitude of the city. e.g. 11.576",
                 },
+                "city_name": {
+                    "type": "string",
+                    "description": "Name of the city, e.g. Munich",
+                },
             },
-            "required": ["city_name"],
+            "required": ["latitude", "longitude", "city_name", "timezone"]
         },
     }
 ]
