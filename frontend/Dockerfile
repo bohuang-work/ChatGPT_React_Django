@@ -4,11 +4,12 @@ FROM node:23-slim
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json yarn.lock ./
+# Copy package.json first
+COPY package.json ./
 
 # Install dependencies and serve
-RUN yarn install --frozen-lockfile && \
+# Remove --frozen-lockfile since we don't have a yarn.lock yet
+RUN yarn install && \
     yarn global add serve
 
 # Copy source code
