@@ -19,7 +19,7 @@ You can also use the weather information function to get the real-time weather d
 - VS Code with "Dev Containers" extension
 - Git
 
-## Quick Start with Dev Container
+## Development with Dev Container
 
 1. Clone the repository:
 ```bash
@@ -30,8 +30,8 @@ cd ChatGPT_React_Django
 2. Setup the environment file:
 Backend requires a `.env` file with under the `backend` directory:
 ```
-OPENAI_API_KEY=your_api_key
-WEATHER_API_KEY=your_weather_api_key
+AZURE_OPENAI_ENDPOINT=your_azure_openai_endpoint
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key
 ```
 
 3. Start with Dev Container:
@@ -55,7 +55,7 @@ cd frontend
 yarn dev
 ```
 
-## Docker Compose Setup
+## Run with Docker Compose
 
 Alternative to Dev Container, you can use Docker Compose:
 
@@ -73,12 +73,11 @@ Services will be available at:
 
 ## Features Implementation Checklist
 
-Model Selection & Configuration:
+#### Model Selection & Configuration:
 - [x] Switch between GPT-4o and GPT-4o mini models
 - [x] Adjustable temperature settings (0.2, 0.7, 0.9)
-- [x] Real-time model parameter updates
 
-Chat Interface:
+#### Chat Interface:
 - [x] Markdown formatting support
 - [x] Code block syntax highlighting
 - [x] Copy functionality:
@@ -86,11 +85,14 @@ Chat Interface:
   - [x] Copy code blocks individually
 - [x] Message regeneration capability
 
-Function Calling Features:
+#### Function Calling Features:
 - [x] Weather information function calling for real time weather data
 
-Documentation:
+#### Documentation:
 - [x] Comprehensive docstrings
 - [x] Code comments
 - [x] Type hints
 - [x] README documentation
+
+#### Deployment to Cloud:
+- [x] add terraform to deploy to Azure VM
