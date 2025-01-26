@@ -35,10 +35,10 @@ const IconButton = ({
 };
 
 IconButton.propTypes = {
-  children: PropTypes.node.isRequired,
-  onClick: PropTypes.func.isRequired,
-  title: PropTypes.string,
-  disabled: PropTypes.bool
+  children: PropTypes.node.isRequired, // Must provide an icon
+  onClick: PropTypes.func.isRequired, // Must provide a click handler
+  title: PropTypes.string, // Optional tooltip text 
+  disabled: PropTypes.bool // Optional disabled state
 };
 
 export default IconButton; 

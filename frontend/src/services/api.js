@@ -18,14 +18,23 @@ class ChatService {
       ? API_CONFIG.ENDPOINTS.CHAT_WITH_FUNCTIONS 
       : API_CONFIG.ENDPOINTS.CHAT
 
-    const response = await axios.post(`${API_CONFIG.BACKEND_URL}${endpoint}`, {
+    const { data } = await axios.post(`${API_CONFIG.BACKEND_URL}${endpoint}`, {
       prompt,
       model,
       temperature
     })
 
-    return response.data
+    // Handle different response formats
+    if (typeof data === 'string') return data
+    if (data?.response?.content) return data.response.content
+    if (data?.response) return typeof data.response === 'string' 
+      ? data.response 
+      : JSON.stringify(data.response)
+    if (data?.content) return data.content
+    
+    // Fallback: stringify any other format
+    return typeof data === 'object' ? JSON.stringify(data) : String(data)
   }
 }
 
-export default ChatService 
+export default ChatService

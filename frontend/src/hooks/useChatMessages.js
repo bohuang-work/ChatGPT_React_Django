@@ -1,112 +1,128 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 import ChatService from '../services/api'
 
 /**
  * Custom hook for managing chat messages and interactions
- * @param {Object} options - Hook configuration options
- * @param {string} options.initialModel - Initial model selection
- * @param {number} options.initialTemperature - Initial temperature setting
- * @returns {Object} Chat state and handlers
+ * 
+ * Features:
+ * - Message state management
+ * - Model and temperature settings
+ * - Message sending and regeneration
+ * - Error handling
+ * 
+ * @param {Object} options Configuration options
+ * @param {string} [options.initialModel='gpt-4o'] Initial model selection
+ * @param {number} [options.initialTemperature=0.7] Initial temperature setting
  */
 export function useChatMessages({ 
   initialModel = 'gpt-4o', 
   initialTemperature = 0.7 
 }) {
+  // State management
   const [messages, setMessages] = useState([])
   const [model, setModel] = useState(initialModel)
   const [temperature, setTemperature] = useState(initialTemperature)
 
-  const sendMessage = async (input) => {
-    const userMessage = { 
-      id: `user-${Date.now()}`,
-      role: 'user', 
-      content: input 
-    }
+  /**
+   * Creates a new message object with unique ID
+   */
+  const createMessage = useCallback((content = '', role = 'user', isLoading = false) => ({
+    id: `${role}-${uuidv4()}`,
+    content: content || '',
+    role,
+    isLoading
+  }), [])
 
-    const assistantMessage = { 
-      id: `assistant-${Date.now()}`,
-      role: 'assistant', 
-      content: '',
-      isLoading: true
-    }
+  /**
+   * Sends a new message and gets AI response
+   */
+  const sendMessage = useCallback(async (prompt) => {
+    if (!prompt?.trim()) return
 
+    const userMessage = createMessage(prompt, 'user')
+    const assistantMessage = createMessage('', 'assistant', true)
+    
     setMessages(prev => [...prev, userMessage, assistantMessage])
 
     try {
-      const useWeatherFunction = input.startsWith("#weather")
-      const response = await ChatService.sendMessage(
-        input, 
+      const useWeatherFunction = prompt.startsWith('#weather')
+      let content = await ChatService.sendMessage(
+        prompt, 
         model, 
-        temperature, 
+        temperature,
         useWeatherFunction
       )
 
-      const content = typeof response.response === 'object' 
-        ? response.response.content 
-        : response.response;
+      // Ensure content is a string and handle objects
+      if (typeof content === 'object') {
+        content = JSON.stringify(content, null, 2)
+      }
 
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessage.id 
-          ? { ...msg, content, isLoading: false }
-          : msg
-      ))
-    } catch (error) {
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMessage.id 
           ? { 
               ...msg, 
-              content: `Error: ${error.response?.data?.error || 'Failed to get response'}`,
+              content: String(content).trim(),
               isLoading: false 
             }
           : msg
       ))
+    } catch (error) {
+      setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id))
     }
-  }
+  }, [model, temperature, createMessage])
 
-  const regenerateMessage = async (messageId) => {
-    const messageIndex = messages.findIndex(msg => msg.id === messageId)
-    const userMessage = messages[messageIndex - 1]
-    if (!userMessage) return
+  /**
+   * Regenerates an assistant message
+   */
+  const regenerateMessage = useCallback(async (messageId) => {
+    const targetMessage = messages.find(m => m.id === messageId)
+    if (!targetMessage || targetMessage.role !== 'assistant') return
 
-    const assistantMessage = { 
-      id: `assistant-${Date.now()}`,
-      role: 'assistant', 
-      content: '',
-      isLoading: true
-    }
+    const userMessage = messages
+      .slice(0, messages.findIndex(m => m.id === messageId))
+      .reverse()
+      .find(m => m.role === 'user')
+    
+    if (!userMessage?.content) return
 
-    setMessages(prev => [...prev.slice(0, messageIndex), assistantMessage])
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, isLoading: true } : msg
+    ))
 
     try {
-      const useWeatherFunction = userMessage.content.startsWith("#weather")
-      const response = await ChatService.sendMessage(
-        userMessage.content, 
-        model, 
-        temperature, 
+      const useWeatherFunction = userMessage.content.startsWith('#weather')
+      let content = await ChatService.sendMessage(
+        userMessage.content,
+        model,
+        temperature,
         useWeatherFunction
       )
 
-      const content = typeof response.response === 'object' 
-        ? response.response.content 
-        : response.response;
+      // Ensure content is a string and handle objects
+      if (typeof content === 'object') {
+        content = JSON.stringify(content, null, 2)
+      }
 
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessage.id 
-          ? { ...msg, content, isLoading: false }
-          : msg
-      ))
-    } catch (error) {
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessage.id 
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId 
           ? { 
               ...msg, 
-              content: `Error: ${error.response?.data?.error || 'Failed to get response'}`,
-              isLoading: false 
+              content: String(content).trim(),
+              isLoading: false,
+              error: false
             }
           : msg
       ))
+    } catch (error) {
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId 
+          ? { ...msg, isLoading: false, error: true }
+          : msg
+      ))
     }
-  }
+  }, [messages, model, temperature])
 
   return {
     messages,

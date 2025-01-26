@@ -6,6 +6,7 @@ import ChatInterface from './components/chat/ChatInterface';
  * Root application component
  */
 const App = () => {
+  // Create a MUI theme object with custom colors and settings
   const theme = createTheme({
     palette: {
       mode: 'light',
@@ -18,10 +19,11 @@ const App = () => {
     },
   });
 
+  // Return the JSX that will be rendered
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ChatInterface />
+    <ThemeProvider theme={theme}>      {/* Provides theme context to all child components */}
+      <CssBaseline />                  {/* Normalizes CSS across browsers */}
+      <ChatInterface />                {/* chatGPT clone component */}
     </ThemeProvider>
   );
 };
