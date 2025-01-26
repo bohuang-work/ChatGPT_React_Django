@@ -1,40 +1,100 @@
 # ChatGPT Clone
 
-A ChatGPT Clone built with Django and React, featuring a clean UI and real-time chat interface.
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![MUI](https://img.shields.io/badge/MUI-%230081CB.svg?style=for-the-badge&logo=mui&logoColor=white)
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 
-## Development Setup
+A full-stack ChatGPT Clone built with Django and React, featuring a modern UI, real-time chat interface, and advanced AI capabilities.
 
-1. Install Docker Desktop and VS Code with the "Dev Containers" extension
-2. Clone this repository
-3. Open the project in VS Code
-4. Press F1 or Ctrl+Shift+P and select "Dev Containers: Open Folder in Container"
-5. Select the project folder and click "Open"
-6. Wait for the container to build and start (this may take a few minutes on first run)
-7. Once inside the container, open two terminals:
-   - In first terminal: `cd backend && python manage.py runserver`
-   - In second terminal: `cd frontend && npm start`
+## Prerequisites
 
-## Project Structure
+- Docker
+- VS Code with "Dev Containers" extension
+- Git
 
-- `/backend` - Django backend API with SQLite database
-- `/frontend` - React frontend with Material UI components
-  - `/src/components` - React components including chat interface
-  - `/src/index.css` - Global styles
-  - `/src/App.js` - Main application component
+## Quick Start with Dev Container
 
-## Development
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd chatgpt-clone
+```
 
-The development environment is configured using Dev Containers. All necessary dependencies including Python, Node.js, and required packages are installed automatically when the container is built.
+2. Copy the environment file:
+```bash
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys and settings
+```
 
-### Features
+3. Start with Dev Container:
+   - Open VS Code
+   - Press F1 or Ctrl+Shift+P
+   - Select "Dev Containers: Open Folder in Container"
+   - Select the project folder
+   - Wait for container build (first run may take several minutes)
 
-- Real-time chat interface
-- Code block support with syntax highlighting
-- Copy to clipboard functionality
-- Response regeneration
-- Adjustable model parameters
+4. Start the services:
 
-### Ports
+Backend:
+```bash
+cd backend
+./run.sh
+```
 
-- Django backend: http://localhost:8000
-- React frontend: http://localhost:3000
+Frontend:
+```bash
+cd frontend
+yarn dev
+```
+
+## Docker Compose Setup
+
+Alternative to Dev Container, you can use Docker Compose:
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Stop all services
+docker-compose down
+```
+
+Services will be available at:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+
+## Features Implementation Checklist
+
+Model Selection & Configuration:
+- [x] Switch between GPT-4o and GPT-4o mini models
+- [x] Adjustable temperature settings (0.2, 0.7, 0.9)
+- [x] Real-time model parameter updates
+
+Chat Interface:
+- [x] Markdown formatting support
+- [x] Code block syntax highlighting
+- [x] Copy functionality:
+  - [x] Copy entire message
+  - [x] Copy code blocks individually
+- [x] Message regeneration capability
+
+Function Calling Features:
+- [x] Weather information function calling for real time weather data
+
+Documentation:
+- [x] Comprehensive docstrings
+- [x] Code comments
+- [x] Type hints
+- [x] README documentation
+
+
+### Environment Variables
+
+Backend requires a `.env` file with under the `backend` directory:
+```
+OPENAI_API_KEY=your_api_key
+WEATHER_API_KEY=your_weather_api_key
+```
