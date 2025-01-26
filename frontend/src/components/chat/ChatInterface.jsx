@@ -70,7 +70,11 @@ const ChatInterface = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      height: '100vh',
+      bgcolor: 'white'
+    }}>
       {/* Left Sidebar */}
       <ChatSidebar
         messages={messages}
@@ -85,10 +89,15 @@ const ChatInterface = () => {
       <Box sx={{ 
         flex: 1,
         display: 'flex', 
-        flexDirection: 'column'
+        flexDirection: 'column',
+        bgcolor: 'white'
       }}>
         {/* Messages Display */}
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'auto',
+          bgcolor: 'white'
+        }}>
           {messages.map((message) => (
             <Box 
               key={message.id} 
@@ -103,7 +112,10 @@ const ChatInterface = () => {
         </Box>
 
         {/* Input Area */}
-        <Container maxWidth="md" sx={{ p: 2 }}>
+        <Container maxWidth="md" sx={{ 
+          p: 2,
+          bgcolor: 'white'
+        }}>
           <ChatInput
             input={input}
             onInputChange={setInput}

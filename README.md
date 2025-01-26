@@ -19,14 +19,15 @@ A full-stack ChatGPT Clone built with Django and React, featuring a modern UI, r
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd chatgpt-clone
+git cloen https://github.com/bohuang-work/ChatGPT_React_Django.git
+cd ChatGPT_React_Django
 ```
 
-2. Copy the environment file:
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your API keys and settings
+2. Setup the environment file:
+Backend requires a `.env` file with under the `backend` directory:
+```
+OPENAI_API_KEY=your_api_key
+WEATHER_API_KEY=your_weather_api_key
 ```
 
 3. Start with Dev Container:
@@ -89,12 +90,3 @@ Documentation:
 - [x] Code comments
 - [x] Type hints
 - [x] README documentation
-
-
-### Environment Variables
-
-Backend requires a `.env` file with under the `backend` directory:
-```
-OPENAI_API_KEY=your_api_key
-WEATHER_API_KEY=your_weather_api_key
-```
