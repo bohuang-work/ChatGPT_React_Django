@@ -57,18 +57,21 @@ const ChatMessage = ({ message, onRegenerate }) => {
     messageContainer: {
       mb: 0.5,
       p: 0,
-      position: 'relative'
+      position: 'relative',
+      width: '100%' // Ensure full width
     },
     messageBox: {
       p: 3,
       bgcolor: 'white',
-      borderBottom: '1px solid rgba(0,0,0,0.1)'
+      borderBottom: '1px solid rgba(0,0,0,0.1)',
+      width: '100%' // Ensure full width
     },
     contentLayout: {
       display: 'flex',
       alignItems: 'flex-start',
       gap: 2,
-      flexDirection: message.role === 'user' ? 'row-reverse' : 'row'
+      flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
+      width: '100%' // Ensure full width
     },
     avatar: {
       width: 30,
@@ -85,7 +88,22 @@ const ChatMessage = ({ message, onRegenerate }) => {
       flex: 1,
       bgcolor: message.role === 'user' ? '#f7f7f8' : 'white',
       p: message.role === 'user' ? 2 : 0,
-      borderRadius: message.role === 'user' ? 2 : 0
+      borderRadius: message.role === 'user' ? 2 : 0,
+      maxWidth: 'calc(100% - 80px)', // Account for avatar and actions
+      '& pre': { // Ensure code blocks don't overflow
+        maxWidth: '100%',
+        overflow: 'auto'
+      },
+      '& table': { // Ensure tables don't overflow
+        maxWidth: '100%',
+        overflow: 'auto'
+      }
+    },
+    actions: {
+      display: 'flex',
+      gap: 1,
+      ml: 2,
+      flexShrink: 0
     }
   };
 
@@ -173,7 +191,13 @@ const ChatMessage = ({ message, onRegenerate }) => {
   return (
     <Box sx={styles.messageContainer}>
       <Box sx={styles.messageBox}>
-        <Container maxWidth="md">
+        <Container 
+          maxWidth="md" 
+          sx={{ 
+            px: { xs: 2, sm: 3 }, // Responsive padding
+            width: '100%'
+          }}
+        >
           <Box sx={styles.contentLayout}>
             {/* Avatar */}
             <Box sx={styles.avatar}>
@@ -204,6 +228,7 @@ const ChatMessage = ({ message, onRegenerate }) => {
                 onCopy={handleCopy}
                 onRegenerate={onRegenerate}
                 isLoading={message.isLoading}
+                sx={styles.actions}
               />
             )}
           </Box>
