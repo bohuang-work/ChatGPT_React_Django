@@ -33,6 +33,7 @@ const ChatInput = ({ input, onInputChange, onSubmit, onWeatherClick }) => {
             onChange={(e) => onInputChange(e.target.value)}
             placeholder="Type your message here..."
             variant="outlined"
+            autoComplete="off"
           />
           <IconButton
             title={!input.trim() ? "Please enter a message" : "Send message"}
