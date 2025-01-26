@@ -7,7 +7,11 @@
 ![MUI](https://img.shields.io/badge/MUI-%230081CB.svg?style=for-the-badge&logo=mui&logoColor=white)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 
-A full-stack ChatGPT Clone built with Django and React, featuring a modern UI, real-time chat interface, and advanced AI capabilities.
+A full-stack ChatGPT Clone built with Django and React, you can choose the model between GPT-4o and GPT-4o mini and adjust the temperature settings.
+You can also use the weather information function to get the real-time weather data.
+
+![Demo](demo.gif)
+
 
 ## Prerequisites
 
@@ -39,13 +43,13 @@ WEATHER_API_KEY=your_weather_api_key
 
 4. Start the services:
 
-Backend:
+Backend: http://localhost:8000
 ```bash
 cd backend
 ./run.sh
 ```
 
-Frontend:
+Frontend: http://localhost:5173
 ```bash
 cd frontend
 yarn dev
