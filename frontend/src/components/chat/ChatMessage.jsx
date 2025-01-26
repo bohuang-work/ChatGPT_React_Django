@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import { Box, Container } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { v4 as uuidv4 } from 'uuid';
 import { MarkdownTable, TableCell } from './MarkdownTable';
 
 /**

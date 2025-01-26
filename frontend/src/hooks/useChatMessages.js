@@ -19,59 +19,47 @@ export function useChatMessages({
   initialModel = 'gpt-4o', 
   initialTemperature = 0.7 
 }) {
-  // State management
-  const [messages, setMessages] = useState([])
-  const [model, setModel] = useState(initialModel)
-  const [temperature, setTemperature] = useState(initialTemperature)
+  const [messages, setMessages] = useState([]);
+  const [model, setModel] = useState(initialModel);
+  const [temperature, setTemperature] = useState(initialTemperature);
 
-  /**
-   * Creates a new message object with unique ID
-   */
   const createMessage = useCallback((content = '', role = 'user', isLoading = false) => ({
     id: `${role}-${uuidv4()}`,
     content: content || '',
     role,
     isLoading
-  }), [])
+  }), []);
 
-  /**
-   * Sends a new message and gets AI response
-   */
   const sendMessage = useCallback(async (prompt) => {
-    if (!prompt?.trim()) return
+    if (!prompt?.trim()) return;
 
-    const userMessage = createMessage(prompt, 'user')
-    const assistantMessage = createMessage('', 'assistant', true)
+    const userMessage = createMessage(prompt, 'user');
+    const assistantMessage = createMessage('', 'assistant', true);
     
-    setMessages(prev => [...prev, userMessage, assistantMessage])
+    setMessages(prev => [...prev, userMessage, assistantMessage]);
 
     try {
-      const useWeatherFunction = prompt.startsWith('#weather')
+      const useWeatherFunction = prompt.startsWith('#weather');
       let content = await ChatService.sendMessage(
         prompt, 
         model, 
         temperature,
         useWeatherFunction
-      )
+      );
 
-      // Ensure content is a string and handle objects
       if (typeof content === 'object') {
-        content = JSON.stringify(content, null, 2)
+        content = JSON.stringify(content, null, 2);
       }
 
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMessage.id 
-          ? { 
-              ...msg, 
-              content: String(content).trim(),
-              isLoading: false 
-            }
+          ? { ...msg, content: String(content).trim(), isLoading: false }
           : msg
-      ))
+      ));
     } catch (error) {
-      setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id))
+      setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id));
     }
-  }, [model, temperature, createMessage])
+  }, [model, temperature, createMessage]);
 
   /**
    * Regenerates an assistant message
