@@ -4,11 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CodeIcon from '@mui/icons-material/Code';
 import ReplayIcon from '@mui/icons-material/Replay';
 import IconButton from '../common/IconButton';
-import { extractCodeBlocks } from '../../utils/formatters';
 
 /**
  * Individual chat message component
@@ -101,16 +100,62 @@ const ChatMessage = ({ message, onRegenerate }) => {
                         lineHeight: 1.4
                       }} {...props} />
                     ),
-                    code: ({ node, inline, ...props }) => (
-                      <code style={{
-                        backgroundColor: inline ? 'transparent' : '#f5f5f5',
-                        padding: inline ? '2px 4px' : '12px',
-                        borderRadius: '4px',
-                        fontSize: '0.9em',
-                        display: inline ? 'inline' : 'block',
-                        whiteSpace: 'pre-wrap'
-                      }} {...props} />
-                    ),
+                    code: ({ node, inline, className, children, ...props }) => {
+                      if (inline) {
+                        return <code className={className} {...props}>{children}</code>;
+                      }
+
+                      const language = className ? className.replace('language-', '') : '';
+                      const codeString = String(children).replace(/\n$/, '');
+
+                      return (
+                        <div style={{ position: 'relative' }}>
+                          <IconButton
+                            title="Copy code"
+                            onClick={() => handleCopy(codeString)}
+                            sx={{
+                              position: 'absolute',
+                              left: '8px',
+                              top: '8px',
+                              bgcolor: 'rgba(255,255,255,0.8)',
+                              padding: '4px',
+                              '&:hover': {
+                                bgcolor: 'rgba(255,255,255,0.9)'
+                              }
+                            }}
+                          >
+                            <ContentCopyIcon sx={{ fontSize: '1rem' }} />
+                          </IconButton>
+                          <code
+                            className={className}
+                            style={{
+                              backgroundColor: '#f5f5f5',
+                              padding: '16px',
+                              paddingTop: '40px',
+                              borderRadius: '4px',
+                              display: 'block',
+                              overflowX: 'auto',
+                              marginTop: '8px',
+                              marginBottom: '8px'
+                            }}
+                            {...props}
+                          >
+                            {language && (
+                              <div style={{ 
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                color: '#666',
+                                fontSize: '0.9em' 
+                              }}>
+                                {language}
+                              </div>
+                            )}
+                            {children}
+                          </code>
+                        </div>
+                      );
+                    },
                     pre: ({ node, ...props }) => (
                       <pre style={{
                         backgroundColor: '#f5f5f5',
@@ -134,13 +179,7 @@ const ChatMessage = ({ message, onRegenerate }) => {
                   title="Copy message"
                   onClick={() => handleCopy(message.content)}
                 >
-                  <ContentCopyIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  title="Copy code blocks"
-                  onClick={() => handleCopy(extractCodeBlocks(message.content))}
-                >
-                  <CodeIcon fontSize="small" />
+                  <FileCopyOutlinedIcon fontSize="small" />
                 </IconButton>
                 <IconButton
                   title="Regenerate response"

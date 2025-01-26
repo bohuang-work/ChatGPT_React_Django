@@ -74,7 +74,7 @@ class WeatherService:
             precip = daily["precipitation_sum"]
 
             # Format as markdown table
-            response = [f"## Weather Forecast for {self.city_name} (Next 7 Days)\n"]
+            response = [f"## Weather Forecast for {self.city_name}\n"]
             response.append("| Date | Max Temperature (°C) | Min Temperature (°C) | Precipitation (mm) |")
             response.append("|------|-------------------|-------------------|-----------------|")
 

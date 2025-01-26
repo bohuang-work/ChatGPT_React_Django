@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { Box, TextField, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import PublicIcon from '@mui/icons-material/Public';
+import CloudOutlinedIcon from '@mui/icons-material/CloudOutlined';
 import IconButton from '../common/IconButton';
 
 /**
@@ -58,7 +58,7 @@ const ChatInput = ({ input, onInputChange, onSubmit, onWeatherClick }) => {
             }
           }}
         >
-          <PublicIcon fontSize="small" />
+          <CloudOutlinedIcon fontSize="small" />
         </IconButton>
       </Box>
     </Paper>

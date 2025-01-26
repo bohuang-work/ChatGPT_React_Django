@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { IconButton as MuiIconButton, Tooltip } from '@mui/material';
+import { IconButton as MuiIconButton } from '@mui/material';
 
 /**
  * Custom IconButton with tooltip
