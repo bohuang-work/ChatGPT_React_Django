@@ -28,7 +28,7 @@ cd ChatGPT_React_Django
 ```
 
 2. Setup the environment file:
-Backend requires a `.env` file with under the `backend` directory:
+Backend requires a `.env` file with under the `/backend` directory:
 ```
 AZURE_OPENAI_ENDPOINT=your_azure_openai_endpoint
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key
@@ -73,26 +73,26 @@ Services will be available at:
 
 ## Features Implementation Checklist
 
-#### Model Selection & Configuration:
-- [x] Switch between GPT-4o and GPT-4o mini models
-- [x] Adjustable temperature settings (0.2, 0.7, 0.9)
+#### Model Selection & Configuration
+✅ Switch between GPT-4o and GPT-4o mini models
+✅ Adjustable temperature settings (0.2, 0.7, 0.9)
 
-#### Chat Interface:
-- [x] Markdown formatting support
-- [x] Code block syntax highlighting
-- [x] Copy functionality:
-  - [x] Copy entire message
-  - [x] Copy code blocks individually
-- [x] Message regeneration capability
+#### Chat Interface
+✅ Markdown formatting support
+✅ Code block syntax highlighting
+✅ Copy functionality:
+  • ✅ Copy entire message
+  • ✅ Copy code blocks individually
+✅ Message regeneration capability
 
-#### Function Calling Features:
-- [x] Weather information function calling for real time weather data
+#### Function Calling Features
+✅ Weather information function calling for real time weather data
 
-#### Documentation:
-- [x] Comprehensive docstrings
-- [x] Code comments
-- [x] Type hints
-- [x] README documentation
+#### Documentation
+✅ Comprehensive docstrings
+✅ Code comments
+✅ Type hints
+✅ README documentation
 
-#### Deployment to Cloud:
-- [x] add terraform to deploy to Azure VM
+#### Deployment to Cloud
+✅ Add terraform to deploy to Azure VM
