@@ -61,6 +61,7 @@ class WeatherService:
                 f"&longitude={self.longitude}"
                 f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
                 f"&timezone={self.timezone}"
+                f"&forecast_days=16"  # The API allows up to 16 days
             )
 
             response = requests.get(url)
