@@ -72,27 +72,28 @@ Services will be available at:
 - Backend: http://localhost:8000
 
 ## Features Implementation Checklist
-
 #### Model Selection & Configuration
-✅ Switch between GPT-4o and GPT-4o mini models
-✅ Adjustable temperature settings (0.2, 0.7, 0.9)
+- [x] Switch between GPT-4o and GPT-4o mini models  
+- [x] Adjustable temperature settings (0.2, 0.7, 0.9)
 
 #### Chat Interface
-✅ Markdown formatting support
-✅ Code block syntax highlighting
-✅ Copy functionality:
-  • ✅ Copy entire message
-  • ✅ Copy code blocks individually
-✅ Message regeneration capability
+- [x] Markdown formatting support
+- [x] Code block syntax highlighting
+- [x] Copy functionality:
+  - [x] Copy entire message
+  - [x] Copy code blocks individually
+- [x] Message regeneration capability
 
 #### Function Calling Features
-✅ Weather information function calling for real time weather data
+- [x] Weather information function calling for real time weather data
 
 #### Documentation
-✅ Comprehensive docstrings
-✅ Code comments
-✅ Type hints
-✅ README documentation
+- [x] Comprehensive docstrings
+- [x] Code comments
+- [x] Type hints
+- [x] README documentation
 
 #### Deployment to Cloud
-✅ Add terraform to deploy to Azure VM
+- [x] Add terraform to deploy to Azure VM
+
+---
