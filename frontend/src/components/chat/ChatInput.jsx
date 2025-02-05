@@ -34,9 +34,9 @@ const ChatInput = ({ input, onInputChange, onSubmit, onWeatherClick }) => {
    * @param {Event} e - Form submission event
    */
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    onSubmit(input);
+    e.preventDefault(); // Prevent page reload
+    if (!input.trim()) return; // Prevent empty submission
+    onSubmit(input); // Call parent handler
   };
 
   return (

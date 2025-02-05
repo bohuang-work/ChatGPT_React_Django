@@ -19,10 +19,12 @@ export function useChatMessages({
   initialModel = 'gpt-4o', 
   initialTemperature = 0.7 
 }) {
+  // State Declarations
   const [messages, setMessages] = useState([]);
   const [model, setModel] = useState(initialModel);
   const [temperature, setTemperature] = useState(initialTemperature);
 
+  // Message Creation
   const createMessage = useCallback((content = '', role = 'user', isLoading = false) => ({
     id: `${role}-${uuidv4()}`,
     content: content || '',
@@ -30,15 +32,19 @@ export function useChatMessages({
     isLoading
   }), []);
 
+  // Message Sending
   const sendMessage = useCallback(async (prompt) => {
     if (!prompt?.trim()) return;
 
+    // Step 1: Create user and assistant messages
     const userMessage = createMessage(prompt, 'user');
     const assistantMessage = createMessage('', 'assistant', true);
     
+    // Step 2: Update messages state combine all previous messages
     setMessages(prev => [...prev, userMessage, assistantMessage]);
 
     try {
+      // Step 3: Send message to backend API
       const useWeatherFunction = prompt.startsWith('#weather');
       let content = await ChatService.sendMessage(
         prompt, 
@@ -51,23 +57,26 @@ export function useChatMessages({
         content = JSON.stringify(content, null, 2);
       }
 
+      // Step 4: Update target message with new content
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMessage.id 
           ? { ...msg, content: String(content).trim(), isLoading: false }
           : msg
       ));
     } catch (error) {
+      // Step 5: Remove target message if error
       setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id));
     }
   }, [model, temperature, createMessage]);
 
-  /**
-   * Regenerates an assistant message
-   */
-  const regenerateMessage = useCallback(async (messageId) => {
+  // Message Regeneration
+  const regenerateMessage = useCallback(async (messageId) => {d
+
+    // Step 1: Find target assistant message to regenerate
     const targetMessage = messages.find(m => m.id === messageId)
     if (!targetMessage || targetMessage.role !== 'assistant') return
 
+    // Step 2: Find associated user message
     const userMessage = messages
       .slice(0, messages.findIndex(m => m.id === messageId))
       .reverse()
@@ -75,11 +84,13 @@ export function useChatMessages({
     
     if (!userMessage?.content) return
 
+    // Step 3: Update target message to loading state
     setMessages(prev => prev.map(msg =>
       msg.id === messageId ? { ...msg, isLoading: true } : msg
     ))
 
     try {
+      // Step 4: Send same message to backend API
       const useWeatherFunction = userMessage.content.startsWith('#weather')
       let content = await ChatService.sendMessage(
         userMessage.content,
@@ -88,11 +99,11 @@ export function useChatMessages({
         useWeatherFunction
       )
 
-      // Ensure content is a string and handle objects
       if (typeof content === 'object') {
         content = JSON.stringify(content, null, 2)
       }
 
+      // Step 5: Update target message with new content
       setMessages(prev => prev.map(msg =>
         msg.id === messageId 
           ? { 
