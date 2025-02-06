@@ -70,7 +70,7 @@ export function useChatMessages({
   }, [model, temperature, createMessage]);
 
   // Message Regeneration
-  const regenerateMessage = useCallback(async (messageId) => {d
+  const regenerateMessage = useCallback(async (messageId) => {
 
     // Step 1: Find target assistant message to regenerate
     const targetMessage = messages.find(m => m.id === messageId)
