@@ -17,16 +17,16 @@ class OpenAIService:
             "api-key": self.api_key,
         }
 
-    def call_chat_gpt(self, model: str, data: Dict[str, Any]) -> str:
+    def call_chat_gpt(self, model: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Make API call to Azure OpenAI.
 
         Args:
-            model: The model name to use for completion, must be one of ["gpt-4o", "gpt-4o-mini"]
+            model: The model name to use for completion
             data: The request data containing messages and parameters
 
         Returns:
-            str: The generated text response from the model
+            Dict[str, Any]: The generated response from the model
 
         Raises:
             Exception: If the API request fails or response format is unexpected
