@@ -3,65 +3,34 @@ import { Box, Container } from '@mui/material';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ChatSidebar from './ChatSidebar';
-import { useChatMessages } from '../../hooks/useChatMessages';
-import { CHAT_CONFIG } from '../../constants/config';
+import useChatMessages from '../../hooks/useChatMessages';
 
 /**
- * ChatInterface Component
- * 
- * Main chat interface that manages the chat layout and state.
- * Provides a three-panel layout with sidebar, messages, and input area.
- * 
- * Features:
- * - Sidebar with model settings and chat history
- * - Messages display area with scroll functionality
- * - Input area with message submission and weather command
- * - Message regeneration capability
- * 
- * Layout Structure:
- * +----------------+------------------+
- * |                |                  |
- * |    Sidebar     |   Messages Area  |
- * |   (Settings)   |                  |
- * |   (History)    |                  |
- * |                |                  |
- * |                |                  |
- * |                |------------------|
- * |                |    Input Area    |
- * +----------------+------------------+
+ * Main chat interface component
  */
 const ChatInterface = () => {
-  // Input state for the chat input field
   const [input, setInput] = useState('');
-
-  // Chat state management from custom hook
   const {
-    messages,      // Array of chat messages
-    model,         // Current AI model
-    temperature,   // Current temperature setting
-    setModel,      // Function to update model
-    setTemperature,// Function to update temperature
-    sendMessage,   // Function to send new message
-    regenerateMessage // Function to regenerate message
+    messages,
+    model,
+    temperature,
+    setModel,
+    setTemperature,
+    sendMessage,
+    regenerateMessage
   } = useChatMessages({
-    initialModel: CHAT_CONFIG.MODELS[0],
-    initialTemperature: CHAT_CONFIG.TEMPERATURES[1]
+    initialModel: 'gpt-4o',
+    initialTemperature: 0.7
   });
 
-  /**
-   * Handles message submission
-   * @param {string} text - Message text to send
-   */
-  const handleSubmit = async (text) => {
+  const handleSubmit = async () => {
+    if (!input.trim()) return;
+    
+    const message = input;
     setInput('');
-    await sendMessage(text);
+    await sendMessage(message);
   };
 
-  /**
-   * Handles chat selection from sidebar
-   * Scrolls to the selected message
-   * @param {string} messageId - ID of message to scroll to
-   */
   const handleChatSelect = (messageId) => {
     const element = document.getElementById(messageId);
     if (element) {
@@ -73,34 +42,35 @@ const ChatInterface = () => {
     <Box sx={{ 
       display: 'flex', 
       height: '100vh',
+      overflow: 'hidden',
       bgcolor: 'white'
     }}>
-      {/* Left Sidebar */}
       <ChatSidebar
         messages={messages}
         model={model}
-        setModel={setModel}
         temperature={temperature}
+        setModel={setModel}
         setTemperature={setTemperature}
         onChatSelect={handleChatSelect}
       />
-
-      {/* Main Chat Area */}
-      <Box sx={{ 
-        flex: 1,
-        display: 'flex', 
-        flexDirection: 'column',
-        bgcolor: 'white'
-      }}>
-        {/* Messages Display */}
-        <Box sx={{ 
-          flex: 1, 
+      <Box 
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{
+          flexGrow: 1,
           overflow: 'auto',
-          bgcolor: 'white'
+          display: 'flex',
+          flexDirection: 'column',
         }}>
           {messages.map((message) => (
             <Box 
-              key={message.id} 
+              key={message.id}
               id={message.id}
             >
               <ChatMessage
@@ -110,19 +80,15 @@ const ChatInterface = () => {
             </Box>
           ))}
         </Box>
-
-        {/* Input Area */}
-        <Container maxWidth="md" sx={{ 
-          p: 2,
-          bgcolor: 'white'
-        }}>
-          <ChatInput
-            input={input}
-            onInputChange={setInput}
-            onSubmit={handleSubmit}
-            onWeatherClick={() => setInput("#weather ")}
-          />
-        </Container>
+        <Box sx={{ p: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+          <Container maxWidth="md">
+            <ChatInput
+              value={input}
+              onChange={setInput}
+              onSubmit={handleSubmit}
+            />
+          </Container>
+        </Box>
       </Box>
     </Box>
   );

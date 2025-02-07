@@ -15,10 +15,10 @@ import ChatService from '../services/api'
  * @param {string} [options.initialModel='gpt-4o'] Initial model selection
  * @param {number} [options.initialTemperature=0.7] Initial temperature setting
  */
-export function useChatMessages({ 
+const useChatMessages = ({ 
   initialModel = 'gpt-4o', 
   initialTemperature = 0.7 
-}) {
+}) => {
   // State Declarations
   const [messages, setMessages] = useState([]);
   const [model, setModel] = useState(initialModel);
@@ -29,99 +29,86 @@ export function useChatMessages({
     id: `${role}-${uuidv4()}`,
     content: content || '',
     role,
-    isLoading
+    isLoading,
+    error: false
   }), []);
 
-  // Message Sending
+  // Send message with history
   const sendMessage = useCallback(async (prompt) => {
     if (!prompt?.trim()) return;
 
-    // Step 1: Create user and assistant messages
+    // Create user and assistant messages
     const userMessage = createMessage(prompt, 'user');
     const assistantMessage = createMessage('', 'assistant', true);
     
-    // Step 2: Update messages state combine all previous messages
+    // Update messages state
     setMessages(prev => [...prev, userMessage, assistantMessage]);
 
     try {
-      // Step 3: Send message to backend API
-      const useWeatherFunction = prompt.startsWith('#weather');
-      let content = await ChatService.sendMessage(
-        prompt, 
+      // Format messages for API
+      const messageHistory = [...messages, userMessage].map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Send message to backend API
+      const content = await ChatService.sendMessage(
+        messageHistory,
         model, 
-        temperature,
-        useWeatherFunction
+        temperature
       );
 
-      if (typeof content === 'object') {
-        content = JSON.stringify(content, null, 2);
-      }
-
-      // Step 4: Update target message with new content
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessage.id 
-          ? { ...msg, content: String(content).trim(), isLoading: false }
+      // Update assistant message with response
+      setMessages(prev => prev.map(msg =>
+        msg.id === assistantMessage.id
+          ? { ...msg, content: content, isLoading: false }
           : msg
       ));
     } catch (error) {
-      // Step 5: Remove target message if error
+      // Remove assistant message if error
       setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id));
     }
-  }, [model, temperature, createMessage]);
+  }, [messages, model, temperature, createMessage]);
 
-  // Message Regeneration
+  // Regenerate message with filtered history
   const regenerateMessage = useCallback(async (messageId) => {
+    // Find target assistant message
+    const targetIndex = messages.findIndex(m => m.id === messageId);
+    if (targetIndex === -1 || messages[targetIndex].role !== 'assistant') return;
 
-    // Step 1: Find target assistant message to regenerate
-    const targetMessage = messages.find(m => m.id === messageId)
-    if (!targetMessage || targetMessage.role !== 'assistant') return
+    // Get messages up to the target message
+    const messageHistory = messages.slice(0, targetIndex).map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
 
-    // Step 2: Find associated user message
-    const userMessage = messages
-      .slice(0, messages.findIndex(m => m.id === messageId))
-      .reverse()
-      .find(m => m.role === 'user')
-    
-    if (!userMessage?.content) return
-
-    // Step 3: Update target message to loading state
+    // Update target message to loading state
     setMessages(prev => prev.map(msg =>
       msg.id === messageId ? { ...msg, isLoading: true } : msg
-    ))
+    ));
 
     try {
-      // Step 4: Send same message to backend API
-      const useWeatherFunction = userMessage.content.startsWith('#weather')
-      let content = await ChatService.sendMessage(
-        userMessage.content,
+      // Send filtered message history to backend
+      const content = await ChatService.sendMessage(
+        messageHistory,
         model,
-        temperature,
-        useWeatherFunction
-      )
+        temperature
+      );
 
-      if (typeof content === 'object') {
-        content = JSON.stringify(content, null, 2)
-      }
-
-      // Step 5: Update target message with new content
+      // Update target message with new response
       setMessages(prev => prev.map(msg =>
         msg.id === messageId 
-          ? { 
-              ...msg, 
-              content: String(content).trim(),
-              isLoading: false,
-              error: false
-            }
+          ? { ...msg, content, isLoading: false, error: false }
           : msg
-      ))
+      ));
     } catch (error) {
       setMessages(prev => prev.map(msg =>
         msg.id === messageId 
           ? { ...msg, isLoading: false, error: true }
           : msg
-      ))
+      ));
     }
-  }, [messages, model, temperature])
+  }, [messages, model, temperature]);
 
   return {
     messages,
@@ -133,3 +120,5 @@ export function useChatMessages({
     regenerateMessage
   }
 }
+
+export default useChatMessages;

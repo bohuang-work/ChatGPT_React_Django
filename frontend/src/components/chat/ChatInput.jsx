@@ -1,107 +1,70 @@
 import PropTypes from 'prop-types';
 import { Box, TextField, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import CloudOutlinedIcon from '@mui/icons-material/CloudOutlined';
 import IconButton from '../common/IconButton';
 
 /**
- * ChatInput Component
- * 
- * A component that renders a chat input interface with:
- * - Text input field for messages
- * - Send button (disabled when input is empty)
- * - Weather query button
- * 
- * Structure:
- * - Paper container (main wrapper)
- *    - Form element
- *      - Text input
- *      - Send button
- *    - Weather button (below the form)
- * 
- * @component
- * @param {Object} props
- * @param {string} props.input - Current input value
- * @param {function} props.onInputChange - Handler for input changes
- * @param {function} props.onSubmit - Handler for form submission
- * @param {function} props.onWeatherClick - Handler for weather button click
+ * Chat input component with submit button
  */
-const ChatInput = ({ input, onInputChange, onSubmit, onWeatherClick }) => {
-  /**
-   * Handles form submission
-   * Prevents default form behavior and validates input before submission
-   * 
-   * @param {Event} e - Form submission event
-   */
+const ChatInput = ({ value, onChange, onSubmit }) => {
   const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload
-    if (!input.trim()) return; // Prevent empty submission
-    onSubmit(input); // Call parent handler
+    e.preventDefault();
+    if (value.trim()) {
+      onSubmit();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (value.trim()) {
+        onSubmit();
+      }
+    }
   };
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
+    <Paper 
+      component="form" 
+      onSubmit={handleSubmit}
+      sx={{ 
         p: 2,
-        borderRadius: 2,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
         bgcolor: 'white',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
       }}
     >
-      {/* Message Input Form */}
-      <form onSubmit={handleSubmit}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          {/* Text Input Field */}
-          <TextField
-            fullWidth
-            size="small"
-            value={input}
-            onChange={e => onInputChange(e.target.value)}
-            placeholder="Type your message here..."
-            variant="outlined"
-            autoComplete="off"
-          />
-          {/* Send Button */}
-          <IconButton
-            title={!input.trim() ? 'Please enter a message' : 'Send message'}
-            onClick={handleSubmit}
-            disabled={!input.trim()}
-          >
-            <SendIcon />
-          </IconButton>
-        </Box>
-      </form>
-
-      {/* Weather Query Button */}
-      <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+      <TextField
+        fullWidth
+        multiline
+        maxRows={4}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type a message..."
+        variant="outlined"
+        size="small"
+        sx={{ flexGrow: 1 }}
+      />
+      <Box sx={{ display: 'flex', gap: 1 }}>
         <IconButton
-          title="Ask about weather"
-          onClick={onWeatherClick}
-          sx={{
-            border: '1px solid #e5e5e5',
-            borderRadius: 1,
-            p: 0.5,
-            '&:hover': {
-              bgcolor: '#f7f7f8',
-            },
-          }}
+          type="submit"
+          title="Send message"
+          disabled={!value.trim()}
+          onClick={handleSubmit}
         >
-          <CloudOutlinedIcon fontSize="small" />
+          <SendIcon />
         </IconButton>
       </Box>
     </Paper>
   );
 };
 
-/**
- * PropTypes for type checking
- */
 ChatInput.propTypes = {
-  input: PropTypes.string.isRequired,      // Current input text
-  onInputChange: PropTypes.func.isRequired, // Input change handler
+  value: PropTypes.string.isRequired,       // Input field value
+  onChange: PropTypes.func.isRequired,      // Input change handler
   onSubmit: PropTypes.func.isRequired,      // Form submission handler
-  onWeatherClick: PropTypes.func.isRequired, // Weather button click handler
 };
 
 export default ChatInput; 

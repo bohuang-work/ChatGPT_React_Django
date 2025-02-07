@@ -7,19 +7,14 @@ import { API_CONFIG } from '../constants/config'
 class ChatService {
   /**
    * Send a chat message to the backend
-   * @param {string} prompt - User's message
+   * @param {Array} messages - Message history
    * @param {string} model - Selected model
    * @param {number} temperature - Temperature setting
-   * @param {boolean} useWeatherFunction - Whether to use weather function endpoint
-   * @returns {Promise<Object>} Response from the backend
+   * @returns {Promise<string>} Response from the backend
    */
-  static async sendMessage(prompt, model, temperature, useWeatherFunction = false) {
-    const endpoint = useWeatherFunction 
-      ? API_CONFIG.ENDPOINTS.CHAT_WITH_FUNCTIONS 
-      : API_CONFIG.ENDPOINTS.CHAT
-
-    const { data } = await axios.post(`${API_CONFIG.BACKEND_URL}${endpoint}`, {
-      prompt,
+  static async sendMessage(messages, model, temperature) {
+    const { data } = await axios.post(`${API_CONFIG.BACKEND_URL}/v1/chat/`, {
+      messages,
       model,
       temperature
     })
@@ -32,7 +27,6 @@ class ChatService {
       : JSON.stringify(data.response)
     if (data?.content) return data.content
     
-    // Fallback: stringify any other format
     return typeof data === 'object' ? JSON.stringify(data) : String(data)
   }
 }

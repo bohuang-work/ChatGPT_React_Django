@@ -4,8 +4,7 @@
 export const API_CONFIG = {
   BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000',
   ENDPOINTS: {
-    CHAT: '/v1/chat/',
-    CHAT_WITH_FUNCTIONS: '/v1/chat_with_functions/'
+    CHAT: '/v1/chat/'
   }
 }
 

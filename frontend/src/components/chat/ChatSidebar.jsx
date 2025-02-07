@@ -53,108 +53,104 @@ const ChatSidebar = ({
    * Filters for user messages and truncates content
    * @returns {Array} Array of processed chat history items
    */
-  const chatHistory = messages
-    .filter(msg => msg.role === 'user')
-    .map(msg => ({
-      id: msg.id,
-      question: msg.content.substring(0, 60) + '...',
-    }));
+  const chatHistory = messages?.filter(msg => msg.role === 'user') || [];
 
   return (
     <Box
       sx={{
-        width: 260,
-        height: '100vh',
-        bgcolor: '#202123',
-        color: 'white',
-        borderRight: '1px solid #4d4d4f',
+        width: 250,
+        p: 2,
+        borderRight: '1px solid rgba(255,255,255,0.1)',
         display: 'flex',
         flexDirection: 'column',
+        gap: 2,
+        bgcolor: '#202123',  // Dark background
+        color: 'white'  // White text
       }}
     >
       {/* Settings Section */}
-      <Box sx={{ p: 2, mb: 3 }}>
-        <Typography variant="subtitle2" sx={{ mb: 2, color: '#8e8ea0', fontWeight: 500 }}>
-          Settings
-        </Typography>
+      <Box>
+        <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>Settings</Typography>
         
-        {/* Model Selection Dropdown */}
-        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-          <InputLabel sx={{ color: 'white' }}>Model</InputLabel>
+        {/* Model Selection */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: 'rgba(255,255,255,0.7)' }}>Model</Typography>
           <Select
+            fullWidth
+            size="small"
             value={model}
-            label="Model"
-            onChange={e => setModel(e.target.value)}
+            onChange={(e) => setModel(e.target.value)}
             sx={{
               color: 'white',
-              '.MuiOutlinedInput-notchedOutline': { borderColor: '#4d4d4f' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#6e6e80' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8e8ea0' }
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.2)',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.3)',
+              },
+              '& .MuiSvgIcon-root': {
+                color: 'white',
+              }
             }}
           >
-            {CHAT_CONFIG.MODELS.map(m => (
+            {CHAT_CONFIG.MODELS.map((m) => (
               <MenuItem key={m} value={m}>{m}</MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </Box>
 
-        {/* Temperature Selection Dropdown */}
-        <FormControl fullWidth size="small">
-          <InputLabel sx={{ color: 'white' }}>Temperature</InputLabel>
+        {/* Temperature Selection */}
+        <Box>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: 'rgba(255,255,255,0.7)' }}>Temperature</Typography>
           <Select
+            fullWidth
+            size="small"
             value={temperature}
-            label="Temperature"
-            onChange={e => setTemperature(e.target.value)}
+            onChange={(e) => setTemperature(e.target.value)}
             sx={{
               color: 'white',
-              '.MuiOutlinedInput-notchedOutline': { borderColor: '#4d4d4f' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#6e6e80' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#8e8ea0' }
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.2)',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255,255,255,0.3)',
+              },
+              '& .MuiSvgIcon-root': {
+                color: 'white',
+              }
             }}
           >
-            {CHAT_CONFIG.TEMPERATURES.map(t => (
+            {CHAT_CONFIG.TEMPERATURES.map((t) => (
               <MenuItem key={t} value={t}>{t}</MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </Box>
       </Box>
 
-      <Divider sx={{ borderColor: '#4d4d4f' }} />
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
       {/* Chat History Section */}
-      <Box sx={{ p: 2 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1, color: '#8e8ea0', fontWeight: 500 }}>
-          History
-        </Typography>
-      </Box>
-
-      {/* Scrollable Chat History List */}
-      <List sx={{ flex: 1, overflow: 'auto' }}>
-        {chatHistory.map(chat => (
-          <ListItem key={chat.id} disablePadding>
-            <ListItemButton 
-              onClick={() => onChatSelect(chat.id)}  // Click handler for chat history item
-              sx={{
-                py: 2,
-                '&:hover': { bgcolor: '#2A2B32' }
-              }}
-            >
-              <ListItemText 
-                primary={chat.question} 
-                sx={{ 
-                  '& .MuiListItemText-primary': {
-                    color: '#ececf1',
-                    fontSize: '0.875rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
+      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>Chat History</Typography>
+        {chatHistory.map((msg) => (
+          <Box
+            key={msg.id}
+            onClick={() => onChatSelect(msg.id)}
+            sx={{
+              p: 1,
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.8)',
+              '&:hover': {
+                bgcolor: 'rgba(255,255,255,0.1)',
+              },
+            }}
+          >
+            <Typography noWrap>
+              {msg.content}
+            </Typography>
+          </Box>
         ))}
-      </List>
+      </Box>
     </Box>
   );
 };
@@ -163,18 +159,16 @@ const ChatSidebar = ({
  * PropTypes for type checking
  */
 ChatSidebar.propTypes = {
-  messages: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,     // Unique message identifier
-      role: PropTypes.string.isRequired,   // Message role (user/assistant)
-      content: PropTypes.string.isRequired, // Message content
-    })
-  ).isRequired,
-  model: PropTypes.string.isRequired,       // Selected AI model
-  setModel: PropTypes.func.isRequired,      // Model change handler
-  temperature: PropTypes.number.isRequired,  // Selected temperature
-  setTemperature: PropTypes.func.isRequired, // Temperature change handler
-  onChatSelect: PropTypes.func.isRequired,   // Chat history item click handler
+  messages: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired,
+  })).isRequired,
+  model: PropTypes.string.isRequired,
+  temperature: PropTypes.number.isRequired,
+  setModel: PropTypes.func.isRequired,
+  setTemperature: PropTypes.func.isRequired,
+  onChatSelect: PropTypes.func.isRequired,
 };
 
 export default ChatSidebar; 

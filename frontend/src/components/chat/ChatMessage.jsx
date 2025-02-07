@@ -5,7 +5,7 @@
  * - PropTypes for type checking
  */
 import PropTypes from 'prop-types';
-import { Box, Container } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MarkdownTable, TableCell } from './MarkdownTable';
@@ -42,35 +42,56 @@ import IconButton from '../common/IconButton';
  * - Loading state indication
  * - Different styling for user/assistant messages
  * 
+ * Layout Structure:
+ * +------------------------------------------+
+ * |                Message                    |
+ * | +------+ +----------------------------+   |
+ * | |Avatar| |        Content             |   |
+ * | |      | | (Markdown/Code/Tables)     |   |
+ * | +------+ +----------------------------+   |
+ * |          +------------+ +-----------+     |
+ * |          |Copy Message| |Regenerate |     |
+ * |          +------------+ +-----------+     |
+ * +------------------------------------------+
+ * 
+ * Code Block Structure:
+ * +------------------------------------------+
+ * | [Copy] Code                    Language   |
+ * |                                          |
+ * |     Code content here...                 |
+ * |                                          |
+ * +------------------------------------------+
+ * 
  * @component
  * @param {Object} props
  * @param {Object} props.message - Message data
  * @param {('user'|'assistant')} props.message.role - Message sender role
  * @param {string} props.message.content - Message content (markdown supported)
  * @param {boolean} [props.message.isLoading] - Loading state indicator
+ * @param {boolean} [props.message.error] - Error state indicator
  * @param {Function} props.onRegenerate - Callback to regenerate assistant messages
  */
 const ChatMessage = ({ message, onRegenerate }) => {
+  const isAssistant = message.role === 'assistant';
+  const hasError = message.error;
+
   // Styles object for better organization
   const styles = {
     messageContainer: {
-      mb: 0.5,
-      p: 0,
-      position: 'relative',
-      width: '100%' // Ensure full width
+      width: '100%',
+      borderBottom: '1px solid rgba(0,0,0,0.1)',
+      bgcolor: 'white',
     },
     messageBox: {
       p: 3,
-      bgcolor: 'white',
-      borderBottom: '1px solid rgba(0,0,0,0.1)',
-      width: '100%' // Ensure full width
+      width: '100%',
     },
     contentLayout: {
       display: 'flex',
       alignItems: 'flex-start',
       gap: 2,
       flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
-      width: '100%' // Ensure full width
+      width: '100%'
     },
     avatar: {
       width: 30,
@@ -88,12 +109,12 @@ const ChatMessage = ({ message, onRegenerate }) => {
       bgcolor: message.role === 'user' ? '#f7f7f8' : 'white',
       p: message.role === 'user' ? 2 : 0,
       borderRadius: message.role === 'user' ? 2 : 0,
-      maxWidth: 'calc(100% - 80px)', // Account for avatar and actions
-      '& pre': { // Ensure code blocks don't overflow
+      maxWidth: 'calc(100% - 80px)',
+      '& pre': {
         maxWidth: '100%',
         overflow: 'auto'
       },
-      '& table': { // Ensure tables don't overflow
+      '& table': {
         maxWidth: '100%',
         overflow: 'auto'
       }
@@ -125,7 +146,6 @@ const ChatMessage = ({ message, onRegenerate }) => {
     table: MarkdownTable,
     th: props => <TableCell isHeader {...props} />,
     td: TableCell,
-    // Code block component
     code: ({ node, inline, className, children, ...props }) => {
       if (inline) return <code className={className} {...props}>{children}</code>;
 
@@ -143,11 +163,29 @@ const ChatMessage = ({ message, onRegenerate }) => {
               top: '8px',
               bgcolor: 'rgba(255,255,255,0.8)',
               padding: '4px',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+              '&:hover': { 
+                bgcolor: 'rgba(255,255,255,0.9)',
+                color: 'primary.main',
+              }
             }}
           >
             <ContentCopyIcon sx={{ fontSize: '1rem' }} />
           </IconButton>
+          {/* Language label */}
+          {language && (
+            <div style={{ 
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              color: '#666',
+              fontSize: '0.9em',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontWeight: 500
+            }}>
+              {language}
+            </div>
+          )}
           {/* Code content */}
           <code {...props} className={className} style={{
             backgroundColor: '#f5f5f5',
@@ -159,23 +197,11 @@ const ChatMessage = ({ message, onRegenerate }) => {
             marginTop: '8px',
             marginBottom: '8px'
           }}>
-            {language && (
-              <div style={{ 
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                color: '#666',
-                fontSize: '0.9em' 
-              }}>
-                {language}
-              </div>
-            )}
             {children}
           </code>
         </div>
       );
     },
-    // Pre component for code blocks
     pre: ({ ...props }) => (
       <pre style={{
         backgroundColor: '#f5f5f5',
@@ -190,13 +216,7 @@ const ChatMessage = ({ message, onRegenerate }) => {
   return (
     <Box sx={styles.messageContainer}>
       <Box sx={styles.messageBox}>
-        <Container 
-          maxWidth="md" 
-          sx={{ 
-            px: { xs: 2, sm: 3 }, // Responsive padding
-            width: '100%'
-          }}
-        >
+        <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, width: '100%' }}>
           <Box sx={styles.contentLayout}>
             {/* Avatar */}
             <Box sx={styles.avatar}>
@@ -209,7 +229,9 @@ const ChatMessage = ({ message, onRegenerate }) => {
             {/* Message Content */}
             <Box sx={styles.content}>
               {message.isLoading ? (
-                <LoadingIndicator />
+                <Typography color="text.secondary">Thinking...</Typography>
+              ) : hasError ? (
+                <Typography color="error">Error generating response</Typography>
               ) : (
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
@@ -221,14 +243,21 @@ const ChatMessage = ({ message, onRegenerate }) => {
             </Box>
 
             {/* Action Buttons */}
-            {message.role === 'assistant' && (
-              <MessageActions 
-                content={message.content}
-                onCopy={handleCopy}
-                onRegenerate={onRegenerate}
-                isLoading={message.isLoading}
-                sx={styles.actions}
-              />
+            {message.role === 'assistant' && !message.isLoading && (
+              <Box sx={styles.actions}>
+                <IconButton
+                  title="Copy message"
+                  onClick={() => handleCopy(message.content)}
+                >
+                  <FileCopyOutlinedIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  title="Regenerate response"
+                  onClick={onRegenerate}
+                >
+                  <ReplayIcon fontSize="small" />
+                </IconButton>
+              </Box>
             )}
           </Box>
         </Container>
@@ -237,50 +266,12 @@ const ChatMessage = ({ message, onRegenerate }) => {
   );
 };
 
-/**
- * Loading indicator component
- */
-const LoadingIndicator = () => (
-  <Box sx={{ p: 2 }}>
-    <Box component="span" sx={{
-      color: '#666',
-      fontSize: '24px',
-      lineHeight: 1,
-      animation: 'blink 1s infinite',
-      '@keyframes blink': {
-        '0%, 100%': { opacity: 0.2 },
-        '50%': { opacity: 0.8 }
-      }
-    }}>...</Box>
-  </Box>
-);
-
-/**
- * Message action buttons component
- */
-const MessageActions = ({ content, onCopy, onRegenerate, isLoading }) => (
-  <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-    <IconButton
-      title="Copy message"
-      onClick={() => onCopy(content)}
-    >
-      <FileCopyOutlinedIcon fontSize="small" />
-    </IconButton>
-    <IconButton
-      title="Regenerate response"
-      onClick={onRegenerate}
-      disabled={isLoading}
-    >
-      <ReplayIcon fontSize="small" />
-    </IconButton>
-  </Box>
-);
-
 ChatMessage.propTypes = {
   message: PropTypes.shape({
     role: PropTypes.oneOf(['user', 'assistant']).isRequired,
     content: PropTypes.string.isRequired,
-    isLoading: PropTypes.bool
+    isLoading: PropTypes.bool,
+    error: PropTypes.bool,
   }).isRequired,
   onRegenerate: PropTypes.func.isRequired
 };
