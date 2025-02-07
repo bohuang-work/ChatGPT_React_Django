@@ -7,7 +7,7 @@ function_descriptions = [
         "type": "function",
         "function": {
             "name": "get_weather_forecast",
-            "description": "Get detailed weather forecast for a location including temperature and precipitation",
+            "description": "Get detailed weather forecast for a location including temperature and precipitation up to 16 days",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -50,7 +50,7 @@ def get_weather_forecast(latitude: float, longitude: float, timezone: str = "UTC
             f"&longitude={longitude}"
             f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
             f"&timezone={timezone}"
-            f"&forecast_days=7"
+            f"&forecast_days=16"
         )
 
         response = requests.get(url)
@@ -64,7 +64,7 @@ def get_weather_forecast(latitude: float, longitude: float, timezone: str = "UTC
         precip = daily["precipitation_sum"]
 
         # Format as markdown table
-        result = ["## 7-Day Weather Forecast\n"]
+        result = ["## Weather Forecast\n"]
         result.append("| Date | Max Temp (°C) | Min Temp (°C) | Precipitation (mm) |")
         result.append("|------|--------------|--------------|-------------------|")
 
@@ -73,7 +73,7 @@ def get_weather_forecast(latitude: float, longitude: float, timezone: str = "UTC
                 f"| {dates[i]} | {max_temps[i]:.1f} | {min_temps[i]:.1f} | {precip[i]:.1f} |"
             )
 
-        result.append("\nData source: Open-Meteo Weather API")
+        result.append("\nData source: Open-Meteo Weather API https://api.open-meteo.com/v1/forecast")
         
         return "\n".join(result)
 
