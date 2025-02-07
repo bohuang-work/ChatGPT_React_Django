@@ -24,6 +24,14 @@ const useChatMessages = ({
   const [model, setModel] = useState(initialModel);
   const [temperature, setTemperature] = useState(initialTemperature);
 
+  // System message for function calling
+  const systemMessage = {
+    role: 'system',
+    content: 'If the user asks about weather, location, or time-related questions, ' +
+             'always trigger the appropriate function call. For weather queries, ' +
+             'extract the location and use the weather function.'
+  };
+
   // Message Creation
   const createMessage = useCallback((content = '', role = 'user', isLoading = false) => ({
     id: `${role}-${uuidv4()}`,
@@ -46,7 +54,11 @@ const useChatMessages = ({
 
     try {
       // Format messages for API
-      const messageHistory = [...messages, userMessage].map(msg => ({
+      const messageHistory = [
+        systemMessage,
+        ...messages,
+        userMessage
+      ].map(msg => ({
         role: msg.role,
         content: msg.content
       }));

@@ -6,7 +6,45 @@ import ChatSidebar from './ChatSidebar';
 import useChatMessages from '../../hooks/useChatMessages';
 
 /**
- * Main chat interface component
+ * ChatInterface Component
+ * 
+ * Main chat interface that manages the conversation between user and AI assistant.
+ * Handles message display, input, and chat settings.
+ * 
+ * Layout Structure:
+ * +------------------+--------------------------------+
+ * |                  |                                |
+ * |                  |                                |
+ * |     Sidebar      |        Message Area            |
+ * |   (Settings)     |     (Scrollable Region)        |
+ * |                  |                                |
+ * |   Model Select   |    +----------------------+    |
+ * |   Temperature    |    |      Message         |    |
+ * |                  |    |  User/Assistant      |    |
+ * |   Chat History   |    +----------------------+    |
+ * |                  |                                |
+ * |                  |    +----------------------+    |
+ * |                  |    |  Code Block          |    |
+ * |                  |    | [Copy]        Lang   |    |
+ * |                  |    |                      |    |
+ * |                  |    |     Code...          |    |
+ * |                  |    +----------------------+    |
+ * |                  |                                |
+ * |                  |    +----------------------+    |
+ * |                  |    |      Input Box       |    |
+ * |                  |    |  [Type Message...]   |    |
+ * |                  |    +----------------------+    |
+ * +------------------+--------------------------------+
+ * 
+ * Features:
+ * - Split view with sidebar and main chat area
+ * - Scrollable message history
+ * - Model and temperature settings
+ * - Message input with submit button
+ * - Support for markdown and code blocks
+ * - Copy and regenerate functionality
+ * 
+ * @component
  */
 const ChatInterface = () => {
   const [input, setInput] = useState('');

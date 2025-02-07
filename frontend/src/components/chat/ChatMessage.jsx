@@ -42,26 +42,6 @@ import IconButton from '../common/IconButton';
  * - Loading state indication
  * - Different styling for user/assistant messages
  * 
- * Layout Structure:
- * +------------------------------------------+
- * |                Message                    |
- * | +------+ +----------------------------+   |
- * | |Avatar| |        Content             |   |
- * | |      | | (Markdown/Code/Tables)     |   |
- * | +------+ +----------------------------+   |
- * |          +------------+ +-----------+     |
- * |          |Copy Message| |Regenerate |     |
- * |          +------------+ +-----------+     |
- * +------------------------------------------+
- * 
- * Code Block Structure:
- * +------------------------------------------+
- * | [Copy] Code                    Language   |
- * |                                          |
- * |     Code content here...                 |
- * |                                          |
- * +------------------------------------------+
- * 
  * @component
  * @param {Object} props
  * @param {Object} props.message - Message data

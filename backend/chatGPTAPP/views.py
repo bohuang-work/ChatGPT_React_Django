@@ -3,7 +3,7 @@ Views for the ChatGPT clone API.
 """
 
 import json
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -45,7 +45,7 @@ def handle_function_call(function_call: Dict[str, Any]) -> str:
         arguments = json.loads(function_call.get("arguments", "{}"))
         
         # Call the function
-        func = FUNCTION_MAP[func_name]
+        func = FUNCTION_MAP[func_name] # type: ignore
         result = func(**arguments)
         
         return result
@@ -82,9 +82,9 @@ def generate_chat_response(request: Request) -> Response:
         })
 
     try:
-        messages = request.data.get("messages", [])
-        model = request.data.get("model")
-        temperature = request.data.get("temperature")
+        messages = request.data.get("messages", []) # type: ignore
+        model = request.data.get("model") # type: ignore
+        temperature = request.data.get("temperature") # type: ignore
 
         if not all([messages, model, temperature]):
             raise ValueError("Missing required parameters")
@@ -100,7 +100,7 @@ def generate_chat_response(request: Request) -> Response:
         }
 
         service = OpenAIService()
-        response = service.call_chat_gpt(model, data)
+        response = service.call_chat_gpt(model, data) # type: ignore
 
         # Check if the AI wants to call a function
         if "tool_calls" in response:
@@ -109,7 +109,7 @@ def generate_chat_response(request: Request) -> Response:
                 function_response = handle_function_call(tool_call["function"])
                 
                 # Add function result to messages
-                messages.append({
+                messages.append({   
                     "role": "assistant",
                     "content": None,
                     "tool_calls": [tool_call]
@@ -128,7 +128,7 @@ def generate_chat_response(request: Request) -> Response:
                 "max_tokens": MAX_TOKENS
             }
             
-            response = service.call_chat_gpt(model, data)
+            response = service.call_chat_gpt(model, data) # type: ignore
 
         return Response({"response": response})
 
